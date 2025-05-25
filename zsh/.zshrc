@@ -136,7 +136,7 @@ export FZF_ALT_C_COMMAND='fd --type d --follow --hidden --exclude node_modules -
 source "$ZDOTDIR/git.zsh"
 source "$ZDOTDIR/gitlab/gitlab.zsh"
 
-source "$ZDOTDIR/chalk.zsh"
+source "$ZDOTDIR/jira/client.zsh"
 
 # Syntax higlighting, needs to be at the end of file
 source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

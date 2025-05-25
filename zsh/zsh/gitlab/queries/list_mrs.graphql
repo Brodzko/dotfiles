@@ -1,0 +1,5 @@
+query {
+  project(fullPath: "elis/elis-frontend") {
+    name
+  }
+}
