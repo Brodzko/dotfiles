@@ -125,7 +125,19 @@ alias gcam="git commit --amend --no-edit"
 alias gcaam="git add . && git commit --amend --no-edit"
 
 # Interactive branch switch
-alias gsw="git branch | grep -v \"^\*\" | fzf --height=20% --reverse --info=inline | xargs git switch"
+gsw() {
+  local branch
+  # git fetch --all --prune
+  branch=$(git branch -a | grep -v HEAD | sed 's/^..//' | fzf)
+  [[ -z "$branch" ]] && return
+
+  if [[ "$branch" == remotes/* ]]; then
+    local remote_branch=${branch#remotes/}
+    git switch --track "$remote_branch"
+  else
+    git switch "$branch"
+  fi
+}
 
 gsc() {
   if [ -n "$1" ];
@@ -164,6 +176,32 @@ alias grest="git diff --name-only --cached | fzf -0 -m --preview 'git diff --sta
 # Logs
 alias glog="git log --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
 alias glogg="git log --graph --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
+
+# Gitlab CLI
+alias mr="glab mr view"
+alias mrcr="glab mr view -c"
+alias mrd="glab mr diff | delta"
+
+alias cr="glab mr list --per-page=30 | fzf -m --reverse --info=inline --preview 'Preview here' | awk '{print substr(\$1, 2)}' | xargs -r glab mr checkout"
+
+mrs() {
+  glab mr list "$@" --output=json | jq -r "
+    .[] |
+    (
+      if .draft then
+        \"\\u001b[35m\"   # purple for draft
+      elif .state == \"opened\" then
+        \"\\u001b[32m\"   # green for open
+      else
+        \"\\u001b[31m\"   # red for closed/merged
+      end
+    )
+    + \"![\" + (.iid|tostring) + \"]\\u001b[0m \"
+    + \"\\u001b[36m(\\udb81\udcc2 \" + .target_branch + \")\\u001b[0m \"
+    + .title
+    + \" \\u001b[90m(\" + (.author.name) + \")\\u001b[0m\"
+  "
+}
 
 # Syntax higlighting, needs to be at the end of file
 echo "source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
