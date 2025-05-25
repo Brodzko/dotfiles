@@ -6,7 +6,7 @@ export SYM_CI_FAILED=$'\uf530'
 export SYM_CI_RUNNING=$'\U00F0996'
 export SYM_CI_CANCELLED=$'\U00F073A'
 export SYM_EYE=$'\uf06e'
-
+export SYM_EYE_CHECK=$'\U00F0D04'
 export SYM_LINE_HORIZONTAL=$'\uf45b'
 
 export SYM_GIT_COMPARE=$'\uf47f'

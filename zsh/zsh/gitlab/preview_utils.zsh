@@ -7,23 +7,6 @@ get_mr_iid() {
   echo $1 | awk -F"[][]" '{print $2}'
 }
 
-print_mr_listitem_2() {
-  while IFS=$'\t' read -r "${(@)model_mr_keys}"; do
-    echo $title
-    echo $source_branch
-    echo $target_branch
-    echo $pipeline_status
-    echo $pipeline_iid
-    echo $reviewers
-    echo $description
-    echo $author
-    echo $draft
-    echo $created_at
-    echo $iid
-    echo $approved_by
-  done
-}
-
 print_ci_status_icon() {
   if [[ $1 == "success" ]]; then
     echo -n "$(chalk green bold $SYM_CI_SUCCESS)"
@@ -57,12 +40,25 @@ print_reviewers() {
   done
 }
 
+print_approved() {
+  local csv=$1
+  local approvers=(${(s:,:)csv})
+  local target="Martin Brodziansky"
+
+  if [[ ${approvers[(ie)$target]} -le ${#approvers} ]]; then
+    echo "$SYM_EYE_CHECK "
+  else
+    echo ""
+  fi
+}
+
 # Pretty-prints a MR object to a row
 # Accepts tab separated values
 print_mr_listitem() {
-  while IFS=$'\t' read -r iid source_branch target_branch title author state draft created_at; do
+  while IFS=$'\n' read -r merge_request; do
 
-    # echo $created_at
+    IFS=$'\t' read -r "${(@)model_mr_keys}" <<< "$merge_request"
+
     if [[ $draft == "true" ]]; then
       color="magenta"
     elif [[ $state == "opened" ]]; then
@@ -70,7 +66,7 @@ print_mr_listitem() {
     else
       color="red"
     fi
-
+    echo -n "$(chalk green bold "$(print_approved $approved_by)")"
     echo -n "$(chalk $color "$(lpad "$(trunc "![$iid]" 8)" 8)") "
     echo -n "$(chalk cyan "$(lpad "($SYM_MR $(trunc "$target_branch" 7))" 11)") "
     echo -n "$title "
