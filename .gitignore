@@ -2,4 +2,4 @@
 .zcompdump*
 
 /zsh/zsh/.zsh_secrets.zsh
-.oauth.json
+/karabiner/**/automatic_backups

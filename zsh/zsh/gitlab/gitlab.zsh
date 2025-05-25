@@ -19,7 +19,7 @@ parse_gql_vars() {
 fetch_mr_list_gql() {
   glab api graphql \
     -f query="$(cat $ZDOTDIR/gitlab/queries/list_mrs.graphql)" \
-    -F project='elis/elis-frontend'
+    -F project="$1"
 }
 
 mrs() {
