@@ -4,7 +4,8 @@
             "complex_modifications": {
                 "rules": [
                     {
-                        "description": "hyper+spacebar -> enter",
+                        "description": "hyper+spacebar -> backspace",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -14,23 +15,23 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [{ "key_code": "return_or_enter" }],
+                                "to": [{ "key_code": "delete_or_backspace" }],
                                 "type": "basic"
                             }
                         ]
                     },
                     {
-                        "description": "hyper+n -> backspace",
+                        "description": "hyper+; -> enter",
                         "manipulators": [
                             {
                                 "from": {
-                                    "key_code": "n",
+                                    "key_code": "semicolon",
                                     "modifiers": {
                                         "mandatory": ["left_control", "left_shift", "left_option", "left_command"],
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [{ "key_code": "delete_or_backspace" }],
+                                "to": [{ "key_code": "return_or_enter" }],
                                 "type": "basic"
                             }
                         ]
@@ -56,97 +57,9 @@
                         ]
                     },
                     {
-                        "description": "Vim-like navigation",
+                        "description": "Vim arrows",
                         "manipulators": [
                             {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "v",
-                                    "modifiers": { "mandatory": ["left_control", "left_option", "left_command", "left_shift"] }
-                                },
-                                "to": [
-                                    {
-                                        "set_variable": {
-                                            "name": "visual_mode",
-                                            "value": 1
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "visual-mode",
-                                            "text": "Visual mode is active"
-                                        }
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "v",
-                                    "modifiers": { "mandatory": ["left_control", "left_option", "left_command", "left_shift"] }
-                                },
-                                "to": [
-                                    {
-                                        "set_variable": {
-                                            "name": "visual_mode",
-                                            "value": 0
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "visual-mode",
-                                            "text": ""
-                                        }
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": { "key_code": "escape" },
-                                "to": [
-                                    {
-                                        "set_variable": {
-                                            "name": "visual_mode",
-                                            "value": 0
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "visual-mode",
-                                            "text": ""
-                                        }
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
                                 "from": {
                                     "key_code": "h",
                                     "modifiers": {
@@ -158,15 +71,94 @@
                                 "type": "basic"
                             },
                             {
-                                "conditions": [
+                                "from": {
+                                    "key_code": "j",
+                                    "modifiers": {
+                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "down_arrow" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "k",
+                                    "modifiers": {
+                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "up_arrow" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "l",
+                                    "modifiers": {
+                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "right_arrow" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "uio deletions",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "u",
+                                    "modifiers": {
+                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "delete_or_backspace" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "i",
+                                    "modifiers": {
+                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [
                                     {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 1
+                                        "key_code": "delete_or_backspace",
+                                        "modifiers": ["left_option"]
                                     }
                                 ],
+                                "type": "basic"
+                            },
+                            {
                                 "from": {
-                                    "key_code": "h",
+                                    "key_code": "o",
+                                    "modifiers": {
+                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "delete_or_backspace",
+                                        "modifiers": ["left_command"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Vim-like selection arrows nm,.",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "n",
                                     "modifiers": {
                                         "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
                                         "optional": ["any"]
@@ -181,33 +173,8 @@
                                 "type": "basic"
                             },
                             {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
                                 "from": {
-                                    "key_code": "j",
-                                    "modifiers": {
-                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
-                                        "optional": ["any"]
-                                    }
-                                },
-                                "to": [{ "key_code": "down_arrow" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "j",
+                                    "key_code": "m",
                                     "modifiers": {
                                         "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
                                         "optional": ["any"]
@@ -222,33 +189,8 @@
                                 "type": "basic"
                             },
                             {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
                                 "from": {
-                                    "key_code": "k",
-                                    "modifiers": {
-                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
-                                        "optional": ["any"]
-                                    }
-                                },
-                                "to": [{ "key_code": "up_arrow" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "k",
+                                    "key_code": "comma",
                                     "modifiers": {
                                         "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
                                         "optional": ["any"]
@@ -263,33 +205,8 @@
                                 "type": "basic"
                             },
                             {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
                                 "from": {
-                                    "key_code": "l",
-                                    "modifiers": {
-                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
-                                        "optional": ["any"]
-                                    }
-                                },
-                                "to": [{ "key_code": "right_arrow" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "visual_mode",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "l",
+                                    "key_code": "period",
                                     "modifiers": {
                                         "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
                                         "optional": ["any"]
@@ -299,27 +216,6 @@
                                     {
                                         "key_code": "right_arrow",
                                         "modifiers": ["left_shift"]
-                                    }
-                                ],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "hyper+r -> ctrl+r",
-                        "manipulators": [
-                            {
-                                "from": {
-                                    "key_code": "r",
-                                    "modifiers": {
-                                        "mandatory": ["left_control", "left_option", "left_shift", "left_command"],
-                                        "optional": ["any"]
-                                    }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "r",
-                                        "modifiers": ["left_control"]
                                     }
                                 ],
                                 "type": "basic"
