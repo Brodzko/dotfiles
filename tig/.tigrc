@@ -1,0 +1,8 @@
+# Log view: press D to preview delta output of commit
+bind main D !>sh -c "git show --color=always %(commit) | delta | less -R"
+
+# Diff view: same behavior for current commit
+bind diff D !sh -c "git show --color=always %(commit) | delta | less -R"
+
+# Status view: show working tree delta diff
+bind status D !sh -c "git diff --color
