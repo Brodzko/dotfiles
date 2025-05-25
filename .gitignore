@@ -1,2 +1,4 @@
 .DS_Store
 .zcompdump*
+
+/zsh/zsh/.zsh_secrets.zsh

@@ -2,6 +2,8 @@
 
 export ZDOTDIR="${HOME}/zsh"
 
+source "$ZDOTDIR/.zsh_secrets.zsh"
+
 if [[ -f "/opt/homebrew/bin/brew" ]]; then
   # If you're using macOS, you'll want this enabled
   eval "$(/opt/homebrew/bin/brew shellenv)"

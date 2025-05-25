@@ -19,7 +19,6 @@ diff_mr() {
 
 show_mr_ci() {
   if [[ -n $1 ]]; then
-    echo "Showing MR CI status..."
     glab ci view $1
   else
     echo "Wrong target branch: $1"
