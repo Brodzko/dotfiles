@@ -3,6 +3,7 @@
 	email = martin.brodziansky@rossum.ai
 [core]
 	pager = delta
+	editor = nvim
 [rebase]
 	updateRefs = true
 [push]
