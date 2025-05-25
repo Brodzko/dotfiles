@@ -5,7 +5,7 @@ source "$ZSHRC_DIR/fancy_symbols.zsh"
 
 # Gets MR IID from list item
 get_mr_iid() {
-  echo $1 | awk -F"[][]" "{print $2}"
+  echo $1 | awk -F"[][]" '{print $2}'
 }
 
 print_ci_status_icon() {
