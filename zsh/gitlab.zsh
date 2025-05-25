@@ -10,36 +10,16 @@ alias mr="glab mr view"
 alias mrcr="glab mr view -c"
 alias mrd="glab mr diff | delta"
 
-# alias cr="glab mr list --per-page=30 | fzf -m --reverse --info=inline --preview 'Preview here' | awk '{print substr(\$1, 2)}' | xargs -r glab mr checkout"
-
-# Pretty-prints a MR object to a row
-# Accepts tab separated values
-print_mr_listitem() {
-  while IFS=$'\t' read -r iid target_branch title author state draft created_at; do
-
-    # echo $created_at
-    if [[ $draft == "true" ]]; then
-      color="magenta"
-    elif [[ $state == "opened" ]]; then
-      color="green"
-    else
-      color="red"
-    fi
-
-    echo -n "$(chalk $color "$(lpad "$(trunc "![$iid]" 8)" 8)") "
-    echo -n "$(chalk cyan "$(lpad "($SYM_MR $(trunc "$target_branch" 7))" 11)") "
-    echo -n "$title "
-    echo -n "$(chalk yellow "($author)") "
-    echo "$(chalk dim "($(date_diff $created_at))")"
-  done
-}
-
 fetch_mr_list() {
   glab mr list --order=updated_at "$@" --output=json | jq -r '.[] | [.iid, .target_branch, .title, .author.name, .state, .draft, .created_at] | @tsv' | print_mr_listitem
 }
 
+checkout_mr() {
+  echo "Checking out $1"
+}
+
 mrs() {
-  fetch_mr_list "$@" | fzf --ansi --reverse --info=inline --preview '
+  fetch_mr_list "$@" | fzf --ansi --reverse --info=inline --bind "ctrl-o:bell" --preview '
     source "$ZSHRC_DIR/preview_utils.zsh"; \
     local iid=$(echo "{}" | awk -F"[][]" "{print \$2}"); \
     glab mr show $iid --output=json | \
