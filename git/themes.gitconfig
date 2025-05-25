@@ -234,6 +234,47 @@
     zero-style = syntax
     syntax-theme = Nord
 
+[delta "mantis-garden"]
+    dark = true
+    side-by-side = true
+    keep-plus-minus-markers = true
+    hyperlinks = true
+
+    file-added-label = [+]
+    file-copied-label = [==]
+    file-modified-label = [*]
+    file-removed-label = [-]
+    file-renamed-label = [->]
+    file-style = omit
+    zero-style = syntax
+    syntax-theme = Coldark-Dark
+
+    commit-decoration-style = "#4fd1c5" box
+    commit-style = "#f6ad55" italic
+
+    hunk-header-decoration-style = "#9f7aea" box
+    hunk-header-file-style = "#d53f8c" bold italic
+    hunk-header-line-number-style = "#f6ad55" bold
+    hunk-header-style = file line-number syntax bold italic
+
+    line-numbers = true
+    line-numbers-left-format = "{nm:>1}|"
+    line-numbers-right-format = "{np:>1}|"
+
+    line-numbers-left-style = "#63b3ed"
+    line-numbers-right-style = "#63b3ed"
+    line-numbers-zero-style = "#a0aec0" italic
+    line-numbers-minus-style = "#fc8181"
+    line-numbers-plus-style = "#68d391"
+
+    minus-style = syntax "#553c3c"
+    minus-emph-style = syntax bold "#e53e3e"
+    plus-style = syntax "#2f4f2f"
+    plus-emph-style = syntax bold "#38a169"
+
+    whitespace-error-style = "#ff6b6b"
+
+
 [delta "mantis-shrimp"]
     #author: https://github.com/2kabhishek
     dark = true
