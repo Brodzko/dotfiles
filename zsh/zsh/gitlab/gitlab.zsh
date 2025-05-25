@@ -12,6 +12,10 @@ fetch_mr_list() {
   glab mr list --order=updated_at "$@" --output=json | jq -r '.[] | [.iid, .source_branch, .target_branch, .title, .author.name, .state, .draft, .created_at] | @tsv' | print_mr_listitem
 }
 
+fetch_mr_list_gql() {
+  glab api graphql -f query="$(cat $ZDOTDIR/gitlab/queries/list_mrs.graphql)"
+}
+
 mrs() {
   fetch_mr_list "$@" | fzf \
     --ansi \
