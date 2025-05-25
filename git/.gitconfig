@@ -4,20 +4,22 @@ path = ./themes.gitconfig
 name = Martin Brodziansky
 email = martin.brodziansky@rossum.ai
 [core]
-pager = delta
+pager = env LESS='' delta
 editor = nvim
 [interactive]
 diffFilter = delta --color-only
 [delta]
-features = mantis-shrimp-lite
+features = mantis-garden
 light = false
 side-by-side = true
 word-diff = true
 line-numbers = true
 navigate = true
 paging = always
+hyperlinks = true
+hyperlinks-file-link-format = "vscode://file/{path}:{line}"
 [merge]
-confictStyle = diff3
+confictStyle = zdiff3
 [diff]
 colorMoved = default
 algorithm = histogram
