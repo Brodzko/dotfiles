@@ -112,6 +112,7 @@ export LSCOLORS="gxBxhxDxfxhxhxhxhxcxcx"
 # General aliases
 alias home="cd $HOME"
 alias clr="clear"
+alias q="source '$ZSHRC_DIR/.zshrc'"
 
 # Git aliases
 #############
@@ -182,8 +183,6 @@ alias glogg="git log --graph --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(r
 source "$ZSHRC_DIR/gitlab.zsh"
 
 source "$ZSHRC_DIR/chalk.zsh"
-
-chalk bold italic bright_red bg_green dim "Hello world"
 
 # Syntax higlighting, needs to be at the end of file
 source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
