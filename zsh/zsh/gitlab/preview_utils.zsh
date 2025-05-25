@@ -1,9 +1,27 @@
 source "$ZDOTDIR/chalk.zsh"
 source "$ZDOTDIR/fancy_symbols.zsh"
+source "$ZDOTDIR/gitlab/queries/models.zsh"
 
 # Gets MR IID from list item
 get_mr_iid() {
   echo $1 | awk -F"[][]" '{print $2}'
+}
+
+print_mr_listitem_2() {
+  while IFS=$'\t' read -r "${(@)model_mr_keys}"; do
+    echo $title
+    echo $source_branch
+    echo $target_branch
+    echo $pipeline_status
+    echo $pipeline_iid
+    echo $reviewers
+    echo $description
+    echo $author
+    echo $draft
+    echo $created_at
+    echo $iid
+    echo $approved_by
+  done
 }
 
 print_ci_status_icon() {

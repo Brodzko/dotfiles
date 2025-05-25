@@ -23,7 +23,7 @@ fetch_mr_list_gql() {
   glab api graphql \
     -f query="$(cat $ZDOTDIR/gitlab/queries/list_mrs.graphql)" \
     -F project="$1" |
-    jq -r ".data.project.mergeRequests.nodes[] | [$model_mr_paths]"
+    jq -r ".data.project.mergeRequests.nodes[] | [$model_mr_paths] | @tsv" | print_mr_listitem_2
 }
 
 mrs() {
