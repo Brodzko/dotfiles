@@ -105,7 +105,16 @@ export COREPACK_ENABLE_AUTO_PIN=0
 # pnpm end
 
 alias pnx="pnpm nx"
-alias ls="ls --color"
+
+custom_ls() {
+  eza --icons --color=always --git-ignore "$@"
+}
+
+alias ls="custom_ls"
+
+lst() {
+  custom_ls --tree --level="$@"
+}
 
 export LSCOLORS="gxBxhxDxfxhxhxhxhxcxcx"
 
