@@ -7,3 +7,22 @@
 	updateRefs = true
 [push]
 	autoSetupRemote = true
+[alias]
+	lg = log -p
+	lol = log --graph --decorate --pretty=oneline --abbrev-commit
+	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
+	st = status
+	co = checkout
+	ci = commit -a -m
+	br = branch
+	ls = ls-files
+	po = push origin
+	f = fetch
+	p = pull
+	delete = branch -d master
+	com = checkout master
+	cob = checkout -b
+	unstage = reset HEAD
+	url = remote set-url origin 
+	ign = ls-files -o -i --exclude-standard
+	cp = cherry-pick
