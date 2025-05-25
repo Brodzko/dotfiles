@@ -25,3 +25,23 @@ show_mr_ci() {
     echo "Wrong target branch: $1"
   fi
 }
+
+approve_mr() {
+  if [[ -n $1 ]]; then
+    echo "Approving MR..."
+    glab mr approve $1
+    echo "Approved!"
+  else
+    echo "Wrong MR IID: $1"
+  fi
+}
+
+revoke_mr() {
+  if [[ -n $1 ]]; then
+    echo "Revoking MR..."
+    glab mr revoke $1
+    echo "Revoked!"
+  else
+    echo "Wrong MR IID: $1"
+  fi
+}

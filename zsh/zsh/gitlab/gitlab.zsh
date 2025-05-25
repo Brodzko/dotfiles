@@ -12,10 +12,6 @@ fetch_mr_list() {
   glab mr list --order=updated_at "$@" --output=json | jq -r '.[] | [.iid, .source_branch, .target_branch, .title, .author.name, .state, .draft, .created_at] | @tsv' | print_mr_listitem
 }
 
-checkout_mr() {
-  echo "Checking out $1"
-}
-
 mrs() {
   fetch_mr_list "$@" | fzf \
     --ansi \
@@ -23,8 +19,10 @@ mrs() {
     --info=inline \
     --delimiter ':::' --with-nth 1 \
     --bind "ctrl-c:become(source $ZDOTDIR/gitlab/bind_utils.zsh; checkout_mr {2})" \
-    --bind "ctrl-d:become(source $ZDOTDIR/gitlab/bind_utils.zsh; diff_mr {2})" \
-    --bind "ctrl-p:become(source $ZDOTDIR/gitlab/bind_utils.zsh; show_mr_ci {3})" \
+    --bind "ctrl-d:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; diff_mr {2})" \
+    --bind "ctrl-p:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; show_mr_ci {3})" \
+    --bind "ctrl-a:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; approve_mr {2})" \
+    --bind "ctrl-u:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; revoke_mr {2})" \
     --preview '
     source "$ZDOTDIR/gitlab/preview_utils.zsh"; \
     local iid=$(echo "{}" | awk -F"[][]" "{print \$2}"); \
