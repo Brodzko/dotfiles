@@ -80,5 +80,7 @@ export COREPACK_ENABLE_AUTO_PIN=0
 alias pnx="pnpm nx"
 alias ls="ls --color"
 
+export LSCOLORS="gxBxhxDxfxhxhxhxhxcxcx"
+
 # Syntax higlighting, needs to be at the end of file
 echo "source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
