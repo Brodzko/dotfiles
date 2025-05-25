@@ -2,6 +2,7 @@ ZSHRC_DIR="${0:A:h}"
 
 source "$ZSHRC_DIR/chalk.zsh"
 source "$ZSHRC_DIR/fancy_symbols.zsh"
+source "$ZSHRC_DIR/utils.zsh"
 
 # Gitlab CLI
 alias mr="glab mr view"
@@ -13,8 +14,9 @@ alias mrd="glab mr diff | delta"
 # Pretty-prints a MR object to a row
 # Accepts tab separated values
 print_mr_listitem() {
-  while IFS=$'\t' read -r iid target_branch title author state draft; do
+  while IFS=$'\t' read -r iid target_branch title author state draft created_at; do
 
+    # echo $created_at
     if [[ $draft == "true" ]]; then
       color="magenta"
     elif [[ $state == "opened" ]]; then
@@ -23,13 +25,14 @@ print_mr_listitem() {
       color="red"
     fi
 
-    echo -n "$(chalk $color "![$iid]") "
-    echo -n "$(chalk cyan "($SYM_MR $target_branch)") "
+    echo -n "$(chalk $color "$(fix_length "![$iid]" 8)") "
+    echo -n "$(chalk cyan "($SYM_MR $(fix_length "$target_branch" 7))") "
     echo -n "$title "
-    echo "$(chalk yellow "($author)")"
+    echo -n "$(chalk yellow "($author)") "
+    echo "$(chalk dim "($(date_diff $created_at))")"
   done
 }
 
 mrs() {
-  glab mr list "$@" --output=json | jq -r '.[] | [.iid, .target_branch, .title, .author.name, .state, .draft] | @tsv' | print_mr_listitem
+  glab mr list "$@" --output=json | jq -r '.[] | [.iid, .target_branch, .title, .author.name, .state, .draft, .created_at] | @tsv' | print_mr_listitem
 }
