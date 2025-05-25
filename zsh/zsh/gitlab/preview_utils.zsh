@@ -1,7 +1,5 @@
-export ZSHRC_DIR="${0:A:h}"
-
-source "$ZSHRC_DIR/chalk.zsh"
-source "$ZSHRC_DIR/fancy_symbols.zsh"
+source "$ZDOTDIR/chalk.zsh"
+source "$ZDOTDIR/fancy_symbols.zsh"
 
 # Gets MR IID from list item
 get_mr_iid() {
