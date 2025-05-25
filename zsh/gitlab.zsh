@@ -25,8 +25,8 @@ print_mr_listitem() {
       color="red"
     fi
 
-    echo -n "$(chalk $color "$(fix_length "![$iid]" 8)") "
-    echo -n "$(chalk cyan "($SYM_MR $(fix_length "$target_branch" 7))") "
+    echo -n "$(chalk $color "$(lpad "$(trunc "![$iid]" 8)" 8)") "
+    echo -n "$(chalk cyan "$(lpad "($SYM_MR $(trunc "$target_branch" 7))" 11)") "
     echo -n "$title "
     echo -n "$(chalk yellow "($author)") "
     echo "$(chalk dim "($(date_diff $created_at))")"

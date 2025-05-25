@@ -47,6 +47,25 @@ date_diff() {
   fi
 }
 
+trunc() {
+  local str="$1"
+  local n="$2"
+  local len=${#str}
+  local cutoff=$((n - 1))
+
+  if ((len > n)); then
+    printf '%s…' "${str:0:$cutoff}"
+  else
+    printf '%s' "$str"
+  fi
+}
+
+lpad() {
+  local str="$1"
+  local n="$2"
+  printf '%-*s' "$n" "$str"
+}
+
 # Fixed lenth string
 fix_length() {
   local str="$1"
