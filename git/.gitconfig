@@ -9,17 +9,18 @@ editor = nvim
 [interactive]
 diffFilter = delta --color-only
 [delta]
-features = weeping-willow
+features = woolly-mammoth
 light = false
 side-by-side = true
 word-diff = true
-color-scheme = TwoDark
 line-numbers = true
 navigate = true
+paging = always
 [merge]
 confictStyle = diff3
 [diff]
 colorMoved = default
+algorithm = histogram
 [rebase]
 updateRefs = true
 [push]
