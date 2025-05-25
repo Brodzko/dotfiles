@@ -139,6 +139,7 @@ alias gca="git add . && git commit"
 alias gcam="git commit --amend --no-edit"
 alias gcaam="git add . && git commit --amend --no-edit"
 
+export FZF_ALT_C_COMMAND='fd --type d --follow --hidden --exclude node_modules --exclude .git --exclude .Trash --exclude .cache'
 # Interactive branch switch
 gsw() {
   local branch
