@@ -3,7 +3,6 @@ export ZSHRC_DIR="${0:A:h}"
 source "$ZSHRC_DIR/chalk.zsh"
 source "$ZSHRC_DIR/fancy_symbols.zsh"
 source "$ZSHRC_DIR/utils.zsh"
-source "$ZSHRC_DIR/preview_utils.zsh"
 
 # Git aliases
 #############

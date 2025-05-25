@@ -1,9 +1,7 @@
-export ZSHRC_DIR="${0:A:h}"
-
-source "$ZSHRC_DIR/chalk.zsh"
-source "$ZSHRC_DIR/fancy_symbols.zsh"
-source "$ZSHRC_DIR/utils.zsh"
-source "$ZSHRC_DIR/preview_utils.zsh"
+source "$ZDOTDIR/chalk.zsh"
+source "$ZDOTDIR/fancy_symbols.zsh"
+source "$ZDOTDIR/utils.zsh"
+source "$ZDOTDIR/gitlab/preview_utils.zsh"
 
 # Gitlab CLI
 alias mr="glab mr view"
@@ -24,11 +22,11 @@ mrs() {
     --reverse \
     --info=inline \
     --delimiter ':::' --with-nth 1 \
-    --bind "ctrl-c:become(source $ZSHRC_DIR/bind_utils.zsh; checkout_mr {2})" \
-    --bind "ctrl-d:become(source $ZSHRC_DIR/bind_utils.zsh; diff_mr {2})" \
-    --bind "ctrl-p:become(source $ZSHRC_DIR/bind_utils.zsh; show_mr_ci {3})" \
+    --bind "ctrl-c:become(source $ZDOTDIR/gitlab/bind_utils.zsh; checkout_mr {2})" \
+    --bind "ctrl-d:become(source $ZDOTDIR/gitlab/bind_utils.zsh; diff_mr {2})" \
+    --bind "ctrl-p:become(source $ZDOTDIR/gitlab/bind_utils.zsh; show_mr_ci {3})" \
     --preview '
-    source "$ZSHRC_DIR/preview_utils.zsh"; \
+    source "$ZDOTDIR/gitlab/preview_utils.zsh"; \
     local iid=$(echo "{}" | awk -F"[][]" "{print \$2}"); \
     glab mr show $iid --output=json | \
     jq -r ". | [

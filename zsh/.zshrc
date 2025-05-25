@@ -1,6 +1,6 @@
 # ~/.zshrc
 
-ZSHRC_DIR="${0:A:h}"
+export ZDOTDIR="${HOME}/zsh"
 
 if [[ -f "/opt/homebrew/bin/brew" ]]; then
   # If you're using macOS, you'll want this enabled
@@ -127,14 +127,14 @@ export LSCOLORS="gxBxhxDxfxhxhxhxhxcxcx"
 # General aliases
 alias home="cd $HOME"
 alias clr="clear"
-alias q="source '$ZSHRC_DIR/.zshrc'"
+alias q="source '$HOME/.zshrc'"
 
 export FZF_ALT_C_COMMAND='fd --type d --follow --hidden --exclude node_modules --exclude .git --exclude .Trash --exclude .cache'
 
-source "$ZSHRC_DIR/git.zsh"
-source "$ZSHRC_DIR/gitlab.zsh"
+source "$ZDOTDIR/git.zsh"
+source "$ZDOTDIR/gitlab/gitlab.zsh"
 
-source "$ZSHRC_DIR/chalk.zsh"
+source "$ZDOTDIR/chalk.zsh"
 
 # Syntax higlighting, needs to be at the end of file
 source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
