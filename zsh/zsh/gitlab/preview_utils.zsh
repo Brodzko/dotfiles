@@ -81,7 +81,7 @@ print_mr_listitem() {
   done;
 }
 
-print_mr_detail_2() {
+print_mr_detail() {
   local mr=$(cat)
 
   IFS=$'\t' read -r "${(@)model_mr_keys}" <<<"$(jq -r "[$model_mr_paths] | @tsv" <<<"$mr")"
@@ -96,7 +96,7 @@ print_mr_detail_2() {
     echo "   $(chalk red bold "$SYM_GIT_COMPARE Merge conflicts detected.")"
   fi
   echo "   $(print_ci_status_detail $pipeline_status)"
-  if [[ $mergeable == "true" ]]; then
+  if [[ $approved == "true" ]]; then
     echo "   $(chalk green bold "$SYM_CI_SUCCESS Approved.")"
   else
     echo "   $(chalk blue bold "$SYM_EYE Needs review.")"
@@ -111,34 +111,4 @@ print_mr_detail_2() {
   echo
   echo $description
   echo
-}
-
-print_mr_detail() {
-  while IFS=$'\t' read -r "${(@)model_mr_keys}"; do
-    echo -n "$(print_ci_status_icon $pipeline_status)"
-    echo -n " "
-    echo -n "$(chalk magenta bold $title)"
-    echo -n " "
-    echo "($(chalk dim yellow $author))"
-    echo "   $(chalk dim blue "$SYM_MR [$source_branch → $target_branch]") "
-    if [[ $conflicts == "true" ]]; then
-      echo "   $(chalk red bold "$SYM_GIT_COMPARE Merge conflicts detected.")"
-    fi
-    echo "   $(print_ci_status_detail $pipeline_status)"
-    if [[ $mergeable == "true" ]]; then
-      echo "   $(chalk green bold "$SYM_CI_SUCCESS Approved.")"
-    else
-      echo "   $(chalk blue bold "$SYM_EYE Needs review.")"
-    fi
-    echo " "
-    if [[ $reviewers == "-" ]]; then
-      echo "No reviewers"
-    else
-      echo "Reviewers:"
-      print_reviewers $reviewers
-    fi
-    echo
-    echo $description
-    echo
-  done
 }
