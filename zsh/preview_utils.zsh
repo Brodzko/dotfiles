@@ -41,6 +41,28 @@ print_reviewers() {
   done
 }
 
+# Pretty-prints a MR object to a row
+# Accepts tab separated values
+print_mr_listitem() {
+  while IFS=$'\t' read -r iid target_branch title author state draft created_at; do
+
+    # echo $created_at
+    if [[ $draft == "true" ]]; then
+      color="magenta"
+    elif [[ $state == "opened" ]]; then
+      color="green"
+    else
+      color="red"
+    fi
+
+    echo -n "$(chalk $color "$(lpad "$(trunc "![$iid]" 8)" 8)") "
+    echo -n "$(chalk cyan "$(lpad "($SYM_MR $(trunc "$target_branch" 7))" 11)") "
+    echo -n "$title "
+    echo -n "$(chalk yellow "($author)") "
+    echo "$(chalk dim "($(date_diff $created_at))")"
+  done
+}
+
 print_mr_detail() {
   while IFS=$'\t' read -r \
     iid \
