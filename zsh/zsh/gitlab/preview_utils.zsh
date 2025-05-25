@@ -8,11 +8,11 @@ get_mr_iid() {
 }
 
 print_ci_status_icon() {
-  if [[ $1 == "success" ]]; then
+  if [[ $1 == "SUCCESS" ]]; then
     echo -n "$(chalk green bold $SYM_CI_SUCCESS)"
-  elif [[ $1 == "failed" ]]; then
+  elif [[ $1 == "FAILED" ]]; then
     echo -n "$(chalk red bold $SYM_CI_FAILED)"
-  elif [[ $1 == "running" ]]; then
+  elif [[ $1 == "RUNNING" ]]; then
     echo -n "$(chalk cyan bold $SYM_CI_RUNNING)"
   else
     echo -n "$(chalk bright_black bold $SYM_CI_CANCELLED)"
@@ -52,12 +52,13 @@ print_approved() {
   fi
 }
 
-# Pretty-prints a MR object to a row
-# Accepts tab separated values
-print_mr_listitem() {
-  while IFS=$'\n' read -r merge_request; do
+parse() {
+  echo "$1" | jq -r "$2"
+}
 
-    IFS=$'\t' read -r "${(@)model_mr_keys}" <<< "$merge_request"
+print_mr_listitem() {
+  while read -r json_line; do
+    IFS=$'\t' read -r "${(@)model_mr_keys}" <<<"$(jq -r "[$model_mr_paths] | @tsv" <<<"$json_line")"
 
     if [[ $draft == "true" ]]; then
       color="magenta"
@@ -66,43 +67,61 @@ print_mr_listitem() {
     else
       color="red"
     fi
-    echo -n "$(chalk green bold "$(print_approved $approved_by)")"
+    echo -n "$(chalk bright_red bold "$(print_approved $approved_by)")"
     echo -n "$(chalk $color "$(lpad "$(trunc "![$iid]" 8)" 8)") "
-    echo -n "$(chalk cyan "$(lpad "($SYM_MR $(trunc "$target_branch" 7))" 11)") "
+
     echo -n "$title "
-    echo -n "$(chalk yellow "($author)") "
+    echo -n "$(chalk cyan "($author)") "
     echo -n "$(chalk dim "($(date_diff $created_at))")"
-    # Stuff after separator is invisible but available for functions
-    echo -n ':::'
-    echo -n $iid
-    echo -n ':::'
-    echo $source_branch
-  done
+
+    local encoded=$(printf %s "$json_line" | base64)
+    # Stuff after separator is invisible but available for functions, pass the whole MR model
+    echo -n '::::::'
+    echo $encoded
+  done;
+}
+
+print_mr_detail_2() {
+  local mr=$(cat)
+
+  IFS=$'\t' read -r "${(@)model_mr_keys}" <<<"$(jq -r "[$model_mr_paths] | @tsv" <<<"$mr")"
+
+  echo -n "$(print_ci_status_icon $pipeline_status)"
+  echo -n " "
+  echo -n "$(chalk magenta bold $title)"
+  echo -n " "
+  echo "($(chalk dim yellow $author))"
+  echo "   $(chalk dim blue "$SYM_MR [$source_branch → $target_branch]") "
+  if [[ $conflicts == "true" ]]; then
+    echo "   $(chalk red bold "$SYM_GIT_COMPARE Merge conflicts detected.")"
+  fi
+  echo "   $(print_ci_status_detail $pipeline_status)"
+  if [[ $mergeable == "true" ]]; then
+    echo "   $(chalk green bold "$SYM_CI_SUCCESS Approved.")"
+  else
+    echo "   $(chalk blue bold "$SYM_EYE Needs review.")"
+  fi
+  echo " "
+  if [[ $reviewers == "-" ]]; then
+    echo "No reviewers"
+  else
+    echo "Reviewers:"
+    print_reviewers $reviewers
+  fi
+  echo
+  echo $description
+  echo
 }
 
 print_mr_detail() {
-  while IFS=$'\t' read -r \
-    iid \
-    source_branch \
-    target_branch \
-    title description \
-    author \
-    state \
-    draft \
-    created_at \
-    pipeline_id \
-    pipeline_status \
-    reviewers \
-    has_conflicts \
-    changes_count \
-    mergeable; do
+  while IFS=$'\t' read -r "${(@)model_mr_keys}"; do
     echo -n "$(print_ci_status_icon $pipeline_status)"
     echo -n " "
     echo -n "$(chalk magenta bold $title)"
     echo -n " "
     echo "($(chalk dim yellow $author))"
     echo "   $(chalk dim blue "$SYM_MR [$source_branch → $target_branch]") "
-    if [[ $has_conflicts == "true" ]]; then
+    if [[ $conflicts == "true" ]]; then
       echo "   $(chalk red bold "$SYM_GIT_COMPARE Merge conflicts detected.")"
     fi
     echo "   $(print_ci_status_detail $pipeline_status)"
