@@ -1,29 +1,26 @@
+[include]
+path = ./themes.gitconfig
 [user]
-	name = Martin Brodziansky
-	email = martin.brodziansky@rossum.ai
+name = Martin Brodziansky
+email = martin.brodziansky@rossum.ai
 [core]
-	pager = delta
-	editor = nvim
+pager = delta
+editor = nvim
+[interactive]
+diffFilter = delta --color-only
+[delta]
+features = weeping-willow
+light = false
+side-by-side = true
+word-diff = true
+color-scheme = TwoDark
+line-numbers = true
+navigate = true
+[merge]
+confictStyle = diff3
+[diff]
+colorMoved = default
 [rebase]
-	updateRefs = true
+updateRefs = true
 [push]
-	autoSetupRemote = true
-[alias]
-	lg = log -p
-	lol = log --graph --decorate --pretty=oneline --abbrev-commit
-	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
-	st = status
-	co = checkout
-	ci = commit -a -m
-	br = branch
-	ls = ls-files
-	po = push origin
-	f = fetch
-	p = pull
-	delete = branch -d master
-	com = checkout master
-	cob = checkout -b
-	unstage = reset HEAD
-	url = remote set-url origin 
-	ign = ls-files -o -i --exclude-standard
-	cp = cherry-pick
+autoSetupRemote = true
