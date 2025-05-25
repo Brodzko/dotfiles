@@ -1,5 +1,7 @@
 # ~/.zshrc
 
+ZSHRC_DIR="${0:A:h}"
+
 if [[ -f "/opt/homebrew/bin/brew" ]]; then
   # If you're using macOS, you'll want this enabled
   eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -177,31 +179,11 @@ alias grest="git diff --name-only --cached | fzf -0 -m --preview 'git diff --sta
 alias glog="git log --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
 alias glogg="git log --graph --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
 
-# Gitlab CLI
-alias mr="glab mr view"
-alias mrcr="glab mr view -c"
-alias mrd="glab mr diff | delta"
+source "$ZSHRC_DIR/gitlab.zsh"
 
-alias cr="glab mr list --per-page=30 | fzf -m --reverse --info=inline --preview 'Preview here' | awk '{print substr(\$1, 2)}' | xargs -r glab mr checkout"
+source "$ZSHRC_DIR/chalk.zsh"
 
-mrs() {
-  glab mr list "$@" --output=json | jq -r "
-    .[] |
-    (
-      if .draft then
-        \"\\u001b[35m\"   # purple for draft
-      elif .state == \"opened\" then
-        \"\\u001b[32m\"   # green for open
-      else
-        \"\\u001b[31m\"   # red for closed/merged
-      end
-    )
-    + \"![\" + (.iid|tostring) + \"]\\u001b[0m \"
-    + \"\\u001b[36m(\\udb81\udcc2 \" + .target_branch + \")\\u001b[0m \"
-    + .title
-    + \" \\u001b[90m(\" + (.author.name) + \")\\u001b[0m\"
-  "
-}
+chalk bold italic bright_red bg_green dim "Hello world"
 
 # Syntax higlighting, needs to be at the end of file
-echo "source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
