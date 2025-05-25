@@ -11,7 +11,7 @@ alias mrcr="glab mr view -c"
 alias mrd="glab mr diff | delta"
 
 fetch_mr_list() {
-  glab mr list --order=updated_at "$@" --output=json | jq -r '.[] | [.iid, .target_branch, .title, .author.name, .state, .draft, .created_at] | @tsv' | print_mr_listitem
+  glab mr list --order=updated_at "$@" --output=json | jq -r '.[] | [.iid, .source_branch, .target_branch, .title, .author.name, .state, .draft, .created_at] | @tsv' | print_mr_listitem
 }
 
 checkout_mr() {
@@ -23,8 +23,10 @@ mrs() {
     --ansi \
     --reverse \
     --info=inline \
-    --bind "ctrl-c:become(source $ZSHRC_DIR/bind_utils.zsh; checkout_mr {})" \
-    --bind "ctrl-d:become(source $ZSHRC_DIR/bind_utils.zsh; diff_mr {})" \
+    --delimiter ':::' --with-nth 1 \
+    --bind "ctrl-c:become(source $ZSHRC_DIR/bind_utils.zsh; checkout_mr {2})" \
+    --bind "ctrl-d:become(source $ZSHRC_DIR/bind_utils.zsh; diff_mr {2})" \
+    --bind "ctrl-p:become(source $ZSHRC_DIR/bind_utils.zsh; show_mr_ci {3})" \
     --preview '
     source "$ZSHRC_DIR/preview_utils.zsh"; \
     local iid=$(echo "{}" | awk -F"[][]" "{print \$2}"); \

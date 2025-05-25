@@ -44,7 +44,7 @@ print_reviewers() {
 # Pretty-prints a MR object to a row
 # Accepts tab separated values
 print_mr_listitem() {
-  while IFS=$'\t' read -r iid target_branch title author state draft created_at; do
+  while IFS=$'\t' read -r iid source_branch target_branch title author state draft created_at; do
 
     # echo $created_at
     if [[ $draft == "true" ]]; then
@@ -59,7 +59,12 @@ print_mr_listitem() {
     echo -n "$(chalk cyan "$(lpad "($SYM_MR $(trunc "$target_branch" 7))" 11)") "
     echo -n "$title "
     echo -n "$(chalk yellow "($author)") "
-    echo "$(chalk dim "($(date_diff $created_at))")"
+    echo -n "$(chalk dim "($(date_diff $created_at))")"
+    # Stuff after separator is invisible but available for functions
+    echo -n ':::'
+    echo -n $iid
+    echo -n ':::'
+    echo $source_branch
   done
 }
 

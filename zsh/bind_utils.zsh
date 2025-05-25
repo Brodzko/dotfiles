@@ -1,13 +1,7 @@
-ZSHRC_DIR="${0:A:h}"
-
-source "$ZSHRC_DIR/preview_utils.zsh"
-
 checkout_mr() {
-  local iid=$(get_mr_iid "$1")
-
-  if [[ -n $iid ]]; then
+  if [[ -n $1 ]]; then
     echo "Checking out merge request branch..."
-    glab mr checkout $iid
+    glab mr checkout $1
     echo "Checked out to $1"
   else
     echo "Wrong MR IID: $1"
@@ -15,11 +9,19 @@ checkout_mr() {
 }
 
 diff_mr() {
-  local iid=$(get_mr_iid "$1")
-
-  if [[ -n $iid ]]; then
-    glab mr diff $iid | delta
+  if [[ -n $1 ]]; then
+    echo "Grabbing MR diff..."
+    glab mr diff $1 | delta
   else
     echo "Wrong MR IID: $1"
+  fi
+}
+
+show_mr_ci() {
+  if [[ -n $1 ]]; then
+    echo "Showing MR CI status..."
+    glab ci view $1
+  else
+    echo "Wrong target branch: $1"
   fi
 }
