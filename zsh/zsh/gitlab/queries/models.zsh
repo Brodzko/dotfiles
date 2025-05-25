@@ -19,6 +19,8 @@ declare -A model_mr=(
   [target_branch]=$(default_to '.targetBranch' '-')
   [pipeline_status]=$(default_to '.headPipeline.status' '-')
   [pipeline_iid]=$(default_to '.headPipeline.iid' '-')
+  [conflicts]=$(default_to '.conflicts' 'false')
+  [mergeable]=$(default_to '.mergeable' 'false')
 )
 # For extracting using jq, will output fields as tab separated values
 model_mr_paths="${(j:, :)${(@v)model_mr}}"

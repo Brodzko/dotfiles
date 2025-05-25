@@ -1,6 +1,6 @@
 query ($project: ID!) {
   project(fullPath: $project) {
-    mergeRequests(first: 30, sort: UPDATED_DESC, state: opened) {
+    mergeRequests(first: 20, sort: UPDATED_DESC, state: opened) {
       nodes {
         draft
         state
