@@ -9,7 +9,7 @@ editor = nvim
 [interactive]
 diffFilter = delta --color-only
 [delta]
-features = woolly-mammoth
+features = mantis-shrimp-lite
 light = false
 side-by-side = true
 word-diff = true
