@@ -1,15 +1,32 @@
 query ($project: ID!) {
   project(fullPath: $project) {
-    mergeRequests(first: 10, sort: UPDATED_DESC) {
+    mergeRequests(first: 20, sort: UPDATED_DESC, state: opened) {
       nodes {
+        draft
+        state
         iid
         title
-        updatedAt
+        description
+        createdAt
         author {
-          username
+          name
         }
-        state
-        webUrl
+        reviewers {
+          nodes {
+            name
+          }
+        }
+        approvedBy {
+          nodes {
+            name
+          }
+        }
+        sourceBranch
+        targetBranch
+        headPipeline {
+          iid
+          status
+        }
       }
       pageInfo {
         hasNextPage

@@ -3,6 +3,8 @@ source "$ZDOTDIR/fancy_symbols.zsh"
 source "$ZDOTDIR/utils.zsh"
 source "$ZDOTDIR/gitlab/preview_utils.zsh"
 
+source "$ZDOTDIR/gitlab/queries/models.zsh"
+
 # Gitlab CLI
 alias mr="glab mr view"
 alias mrcr="glab mr view -c"
@@ -16,10 +18,12 @@ parse_gql_vars() {
   echo $1 | jq -Rn '(input | split("=")) as $kv | { ($kv[0]): ($kv[1]) } | @json'
 }
 
+# TODO: Add variables
 fetch_mr_list_gql() {
   glab api graphql \
     -f query="$(cat $ZDOTDIR/gitlab/queries/list_mrs.graphql)" \
-    -F project="$1"
+    -F project="$1" |
+    jq -r ".data.project.mergeRequests.nodes[] | [$model_mr_paths]"
 }
 
 mrs() {
