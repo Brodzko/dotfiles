@@ -1,0 +1,9 @@
+[user]
+	name = Martin Brodziansky
+	email = martin.brodziansky@rossum.ai
+[core]
+	pager = delta
+[rebase]
+	updateRefs = true
+[push]
+	autoSetupRemote = true
