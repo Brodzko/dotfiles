@@ -14,6 +14,7 @@ declare -A model_mr=(
   [author]=$(default_to '.author.name' '-')
   [created_at]=$(default_to '.createdAt' '-')
   [reviewers]=$(default_to '.reviewers.nodes | map(.name) | join(",")' '-')
+  [approved]=$(default_to '.approved' 'false')
   [approved_by]=$(default_to '.approvedBy.nodes | map(.name) | join(",")' '-')
   [source_branch]=$(default_to '.sourceBranch' '-')
   [target_branch]=$(default_to '.targetBranch' '-')

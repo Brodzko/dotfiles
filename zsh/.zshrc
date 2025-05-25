@@ -137,6 +137,7 @@ source "$ZDOTDIR/git.zsh"
 source "$ZDOTDIR/gitlab/gitlab.zsh"
 
 source "$ZDOTDIR/jira/client.zsh"
+source "$ZDOTDIR/elis_be.zsh"
 
 # Syntax higlighting, needs to be at the end of file
 source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

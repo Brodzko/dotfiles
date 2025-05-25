@@ -3,3 +3,5 @@
 
 /zsh/zsh/.zsh_secrets.zsh
 /karabiner/**/automatic_backups
+.zsh_history
+/zsh/zsh/elis_be.zsh

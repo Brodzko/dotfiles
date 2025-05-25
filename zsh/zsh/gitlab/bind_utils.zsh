@@ -1,3 +1,5 @@
+source "$ZDOTDIR/gitlab/queries/models.zsh"
+
 checkout_mr() {
   if [[ -n $1 ]]; then
     echo "Checking out merge request branch..."
@@ -9,11 +11,14 @@ checkout_mr() {
 }
 
 diff_mr() {
-  if [[ -n $1 ]]; then
+  local mr=$(cat)
+  IFS=$'\t' read -r "${(@)model_mr_keys}" <<<"$(jq -r "[$model_mr_paths] | @tsv" <<<"$mr")"
+
+  if [[ -n $iid ]]; then
     echo "Grabbing MR diff..."
-    glab mr diff $1 | delta
+    glab mr diff $iid| delta
   else
-    echo "Wrong MR IID: $1"
+    echo "Wrong MR IID: $mr"
   fi
 }
 

@@ -16,6 +16,7 @@ query ($project: ID!) {
             name
           }
         }
+        approved
         approvedBy {
           nodes {
             name
