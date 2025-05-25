@@ -1,5 +1,20 @@
-query {
-  project(fullPath: "elis/elis-frontend") {
-    name
+query ($project: ID!) {
+  project(fullPath: $project) {
+    mergeRequests(first: 10, sort: UPDATED_DESC) {
+      nodes {
+        iid
+        title
+        updatedAt
+        author {
+          username
+        }
+        state
+        webUrl
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
   }
 }

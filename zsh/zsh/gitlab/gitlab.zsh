@@ -12,8 +12,14 @@ fetch_mr_list() {
   glab mr list --order=updated_at "$@" --output=json | jq -r '.[] | [.iid, .source_branch, .target_branch, .title, .author.name, .state, .draft, .created_at] | @tsv' | print_mr_listitem
 }
 
+parse_gql_vars() {
+  echo $1 | jq -Rn '(input | split("=")) as $kv | { ($kv[0]): ($kv[1]) } | @json'
+}
+
 fetch_mr_list_gql() {
-  glab api graphql -f query="$(cat $ZDOTDIR/gitlab/queries/list_mrs.graphql)"
+  glab api graphql \
+    -f query="$(cat $ZDOTDIR/gitlab/queries/list_mrs.graphql)" \
+    -F project='elis/elis-frontend'
 }
 
 mrs() {
