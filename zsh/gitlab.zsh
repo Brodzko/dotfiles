@@ -19,7 +19,7 @@ checkout_mr() {
 }
 
 mrs() {
-  fetch_mr_list "$@" | fzf --ansi --reverse --info=inline --bind "ctrl-o:bell" --preview '
+  fetch_mr_list "$@" | fzf --ansi --reverse --info=inline --bind "ctrl-c:become(source $ZSHRC_DIR/bind_utils.zsh; checkout_mr {})" --preview '
     source "$ZSHRC_DIR/preview_utils.zsh"; \
     local iid=$(echo "{}" | awk -F"[][]" "{print \$2}"); \
     glab mr show $iid --output=json | \
