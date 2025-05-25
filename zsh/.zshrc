@@ -116,6 +116,9 @@ lst() {
   custom_ls --tree --level="$@"
 }
 
+alias ..="cd .."
+alias ...="cd ../.."
+
 export LSCOLORS="gxBxhxDxfxhxhxhxhxcxcx"
 
 # General aliases
