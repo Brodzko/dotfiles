@@ -7,7 +7,8 @@ default_to() {
 
 declare -A model_mr=(
   [iid]=$(default_to '.iid' '-')
-  [draft]=$(default_to '.draft' '-')
+  [draft]=$(default_to '.draft | tostring' 'false')
+  [state]=$(default_to '.state' '-')
   [title]=$(default_to '.title' '-')
   [description]=$(default_to '.description' '-')
   [author]=$(default_to '.author.name' '-')
