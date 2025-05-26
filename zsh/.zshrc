@@ -133,7 +133,7 @@ alias q="source '$HOME/.zshrc'"
 
 export FZF_ALT_C_COMMAND='fd --type d --follow --hidden --exclude node_modules --exclude .git --exclude .Trash --exclude .cache'
 
-source "$ZDOTDIR/git.zsh"
+source "$ZDOTDIR/git/git.zsh"
 source "$ZDOTDIR/gitlab/gitlab.zsh"
 
 source "$ZDOTDIR/jira/client.zsh"

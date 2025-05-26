@@ -1,8 +1,6 @@
-export ZSHRC_DIR="${0:A:h}"
-
-source "$ZSHRC_DIR/chalk.zsh"
-source "$ZSHRC_DIR/fancy_symbols.zsh"
-source "$ZSHRC_DIR/utils.zsh"
+source "$ZDOTDIR/chalk.zsh"
+source "$ZDOTDIR/fancy_symbols.zsh"
+source "$ZDOTDIR/utils.zsh"
 
 # Git aliases
 #############
@@ -68,12 +66,65 @@ alias grest="git diff --name-only --cached | fzf -0 -m --preview 'git diff --sta
 alias glog="git log --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
 alias glogg="git log --graph --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
 
+get_status_color() {
+  # Unstaged
+  if [[ "$1" == "??" ]]; then
+    echo "red"
+  # Merge conflicts
+  elif [[ "$1" =~ "^(U.|.U)" ]]; then
+    echo "bg_red black"
+  # Renames
+  elif [[ "$1" =~ "^(R.|.R)" ]]; then
+    echo "magenta"
+  # Unstaged only
+  elif [[ "$1" =~ "^ ." ]]; then
+    echo "red"
+  # Staged only
+  elif [[ "$1" =~ "^. " ]]; then
+    echo "green"
+  # Changes in both
+  elif [[ "$1" =~ "^.." ]]; then
+    echo "yellow"
+  else
+    echo "white"
+  fi
+}
+
+enhanced_git_status() {
+  local output=$(git status --porcelain)
+
+  while IFS= read -r line; do
+    local xy=$(echo "$line" | awk '{print $1}')
+    local filepath=$(echo "$line" | awk '{print $2}')
+    local original_filepath=$(echo "$line" | awk '{print $3}')
+
+    # Renamed file, split by arrow
+    if [[ "$line" =~ "^(..)\ (.*)\ ->\ (.*)$" ]]; then
+      xy=${match[1]}
+      original_filepath=${match[3]}
+      filepath=${match[2]}
+    else
+      xy=${line[1, 2]}
+      filepath=${line[4, -1]}
+    fi
+
+    echo -n "$(chalk $(get_status_color $xy) bold $xy) "
+    echo -n "$(chalk $(get_status_color $xy) $filepath)"
+    if [[ -z "$original_filepath" ]]; then
+      echo
+    else
+      echo " -> $(chalk magenta $original_filepath)"
+    fi
+
+  done <<<"$output"
+}
+
 # V2 - interactive status
 gst() {
-  git status --porcelain |
+  enhanced_git_status |
     fzf --ansi --no-sort \
       --height=80% --layout=reverse \
-      --border --header "Uncommited Changes (Staged: X, Unstaged: Y)" \
+      --color="hl:bright-white,hl+:bright-white" \
       --preview \
-      'echo {}'
+      'echo {1},{2},{3},{4}'
 }
