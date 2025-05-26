@@ -25,10 +25,11 @@ fetch_mr_list() {
 mrs() {
   fetch_mr_list "elis/elis-frontend" "$@" | fzf --ansi --reverse --info=inline \
     --delimiter '::::::' --with-nth '{1}' \
+    --phony --query "" \
     --bind "ctrl-c:become(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | checkout_mr)" \
     --bind "ctrl-d:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | diff_mr)" \
     --bind "ctrl-p:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | show_mr_ci)" \
-    --bind "ctrl-a:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | approve_mr)" \
-    --bind "ctrl-u:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | revoke_mr)" \
+    --bind "ctrl-a:execute-silent(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | approve_mr)+reload(source $ZDOTDIR/gitlab/gitlab.zsh; fetch_mr_list elis/elis-frontend \"@$\")" \
+    --bind "ctrl-u:execute-silent(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | revoke_mr)+reload(source $ZDOTDIR/gitlab/gitlab.zsh; fetch_mr_list elis/elis-frontend \"@$\")" \
     --preview 'source $ZDOTDIR/gitlab/preview_utils.zsh; echo {2} | base64 --decode | print_mr_detail' --preview-window=wrap
 }

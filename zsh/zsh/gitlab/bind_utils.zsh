@@ -1,12 +1,15 @@
 source "$ZDOTDIR/gitlab/queries/models.zsh"
 
 checkout_mr() {
-  if [[ -n $1 ]]; then
+  local mr=$(cat)
+  IFS=$'\t' read -r "${(@)model_mr_keys}" <<<"$(jq -r "[$model_mr_paths] | @tsv" <<<"$mr")"
+
+  if [[ -n $iid ]]; then
     echo "Checking out merge request branch..."
-    glab mr checkout $1
-    echo "Checked out to $1"
+    glab mr checkout $iid
+    echo "Checked out to $iid"
   else
-    echo "Wrong MR IID: $1"
+    echo "Wrong MR IID: $mr"
   fi
 }
 
@@ -23,29 +26,38 @@ diff_mr() {
 }
 
 show_mr_ci() {
-  if [[ -n $1 ]]; then
-    glab ci view $1
+  local mr=$(cat)
+  IFS=$'\t' read -r "${(@)model_mr_keys}" <<<"$(jq -r "[$model_mr_paths] | @tsv" <<<"$mr")"
+
+  if [[ -n $source_branch ]]; then
+    glab ci view $source_branch
   else
-    echo "Wrong target branch: $1"
+    echo "Wrong target branch: $source_branch"
   fi
 }
 
 approve_mr() {
-  if [[ -n $1 ]]; then
+  local mr=$(cat)
+  IFS=$'\t' read -r "${(@)model_mr_keys}" <<<"$(jq -r "[$model_mr_paths] | @tsv" <<<"$mr")"
+
+  if [[ -n $iid ]]; then
     echo "Approving MR..."
-    glab mr approve $1
+    glab mr approve $iid
     echo "Approved!"
   else
-    echo "Wrong MR IID: $1"
+    echo "Wrong MR IID: $iid"
   fi
 }
 
 revoke_mr() {
-  if [[ -n $1 ]]; then
+  local mr=$(cat)
+  IFS=$'\t' read -r "${(@)model_mr_keys}" <<<"$(jq -r "[$model_mr_paths] | @tsv" <<<"$mr")"
+
+  if [[ -n $iid ]]; then
     echo "Revoking MR..."
-    glab mr revoke $1
+    glab mr revoke $iid
     echo "Revoked!"
   else
-    echo "Wrong MR IID: $1"
+    echo "Wrong MR IID: $iid"
   fi
 }
