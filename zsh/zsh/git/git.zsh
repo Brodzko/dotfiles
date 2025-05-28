@@ -119,12 +119,80 @@ enhanced_git_status() {
   done <<<"$output"
 }
 
+_get_status_code() {
+  local input=$1
+
+  print "${input:0:2}"
+}
+
+_get_filepath() {
+  local input=$1
+  # Git code
+  local path_part=${input:3}
+
+  if [[ "$path_part" =~ " -> " ]]; then
+    echo "${path_part#* -> }"
+  else
+    echo "$path_part"
+  fi
+}
+
+_get_oldfilepath() {
+  local input=$1
+  local path_part=${input:3}
+
+  if [[ "$path_part" =~ " -> " ]]; then
+    echo "${path_part% -> *}"
+  else
+    echo ""
+  fi
+}
+
+_print_preview() {
+  local input=$(cat)
+
+  local status_code=$(_get_status_code $input)
+  local filepath=$(_get_filepath $input)
+  local oldfilepath=$(_get_oldfilepath $input)
+
+  local code_staged="${status_code:0:1}"
+  local code_unstaged="${status_code:1:1}"
+
+  local diff_kind=$(if [[ "$code_unstaged" == " " ]]; then echo "staged"; else echo "unstaged"; fi)
+  local diff_status=$(if [[ "$code_unstaged" == " " ]]; then echo "$code_staged"; else echo "$code_unstaged"; fi)
+
+  if [[ "$diff_status" == "?" ]]; then
+    echo $(chalk italic "Untracked file")
+    echo ""
+    echo $(chalk cyan bold "head -n 50 $filepath | bat --color=always")
+    echo ""
+
+    head -n 50 $filepath | bat --color=always --terminal-width=$FZF_PREVIEW_COLUMNS
+  elif [[ "$diff_status" == "R" || "$diff_status" == "T" || "$diff_status" == "C" ]]; then
+    echo ""
+    echo $(chalk cyan bold "git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -M -- $oldfilepath $filepath")
+    echo ""
+
+    git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -M -- $oldfilepath $filepath | delta --width=$FZF_PREVIEW_COLUMNS
+  elif [[ "$diff_status" == "M" || "$diff_status" == "A" || "$diff_status" == "U" || "$diff_status" == "D" ]]; then
+    echo ""
+    echo $(chalk cyan bold "git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -- $filepath")
+    echo ""
+
+    git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -- $filepath | delta --width=$FZF_PREVIEW_COLUMNS
+  else
+    echo $(chalk red bold "Unhandled case!")
+    git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -- $filepath | delta --width=$FZF_PREVIEW_COLUMNS
+  fi
+}
+
 # V2 - interactive status
 gst() {
   enhanced_git_status |
     fzf --ansi --no-sort \
       --height=80% --layout=reverse \
       --color="hl:bright-white,hl+:bright-white" \
+      --preview-window=right,70%,wrap \
       --preview \
-      'echo {1},{2},{3},{4}'
+      'source $ZDOTDIR/git/git.zsh; echo {} | _print_preview'
 }

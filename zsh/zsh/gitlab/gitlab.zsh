@@ -25,7 +25,6 @@ fetch_mr_list() {
 mrs() {
   fetch_mr_list "elis/elis-frontend" "$@" | fzf --ansi --reverse --info=inline \
     --delimiter '::::::' --with-nth '{1}' \
-    --phony --query "" \
     --bind "ctrl-c:become(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | checkout_mr)" \
     --bind "ctrl-d:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | diff_mr)" \
     --bind "ctrl-p:execute(source $ZDOTDIR/gitlab/bind_utils.zsh; echo {2} | base64 --decode | show_mr_ci)" \
