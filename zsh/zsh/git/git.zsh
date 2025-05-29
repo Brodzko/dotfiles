@@ -55,13 +55,6 @@ gscm() {
 alias gprstale="git branch -v | grep '\[gone\]' | awk '{print \$1}' | xargs -r git branch -D"
 alias gprstaleman="git branch -v | fzf -m --reverse --info=inline | awk '{print \$1}' | xargs -r git branch -D"
 
-# Interactive stage
-alias gad="git status --porcelain | rg '^(.\?|.M|.D|.R|.U)' | fzf -m --reverse --info=inline --preview 'git diff --color=always --wrap -- \$(echo {} | awk '\''{print substr(\$0, 4)}'\'') | delta --color-only' | awk '{print substr(\$0, 4)}' | xargs -r git add && git status -u"
-alias gadp="git status --porcelain | rg '^(.\?|.M|.D|.R|.U)' | fzf -m --preview 'git diff --color=always --wrap -- \$(echo {} | awk '\''{print substr(\$0, 4)}'\'') | delta --color-only' | awk '{print substr(\$0, 4)}' | xargs -r -o git add -p"
-
-# Interactive unstage
-alias grest="git diff --name-only --cached | fzf -0 -m --preview 'git diff --staged --color=always {-1} | delta --color-only' | xargs -r git reset -q HEAD -- && git status --u"
-
 # Logs
 alias glog="git log --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
 alias glogg="git log --graph --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
@@ -148,8 +141,8 @@ _get_oldfilepath() {
   fi
 }
 
-_print_preview() {
-  local input=$(cat)
+_generate_diff_command() {
+  local input=$1
 
   local status_code=$(_get_status_code $input)
   local filepath=$(_get_filepath $input)
@@ -158,32 +151,90 @@ _print_preview() {
   local code_staged="${status_code:0:1}"
   local code_unstaged="${status_code:1:1}"
 
-  local diff_kind=$(if [[ "$code_unstaged" == " " ]]; then echo "staged"; else echo "unstaged"; fi)
+  local diff_kind=${2:-$(if [[ "$code_unstaged" == " " ]]; then echo "staged"; else echo "unstaged"; fi)}
   local diff_status=$(if [[ "$code_unstaged" == " " ]]; then echo "$code_staged"; else echo "$code_unstaged"; fi)
 
+  local -a cmd_parts
+
   if [[ "$diff_status" == "?" ]]; then
-    echo $(chalk italic "Untracked file")
-    echo ""
-    echo $(chalk cyan bold "head -n 50 $filepath | bat --color=always")
-    echo ""
+    cmd_parts=(
+      head -n 50
+      "$filepath"
+    )
 
-    head -n 50 $filepath | bat --color=always --terminal-width=$FZF_PREVIEW_COLUMNS
-  elif [[ "$diff_status" == "R" || "$diff_status" == "T" || "$diff_status" == "C" ]]; then
-    echo ""
-    echo $(chalk cyan bold "git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -M -- $oldfilepath $filepath")
-    echo ""
+  elif [[ "$diff_status" == "R" || "$diff_status" == "T" || "$diff_status" == "C" || "$diff_status" == "M" || "$diff_status" == "A" || "$diff_status" == "U" || "$diff_status" == "D" ]]; then
+    cmd_parts=(
+      git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; elif [[ $diff_kind == "both" ]]; then echo "HEAD"; fi)
+      $(if [[ "$diff_status" == "R" || "$diff_status" == "T" || "$diff_status" == "C" ]]; then echo "-M"; fi)
+      " -- "
+      $(if [[ "$diff_status" == "R" || "$diff_status" == "T" || "$diff_status" == "C" ]]; then echo "$oldfilepath"; fi)
+      "$filepath"
+    )
 
-    git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -M -- $oldfilepath $filepath | delta --width=$FZF_PREVIEW_COLUMNS
-  elif [[ "$diff_status" == "M" || "$diff_status" == "A" || "$diff_status" == "U" || "$diff_status" == "D" ]]; then
-    echo ""
-    echo $(chalk cyan bold "git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -- $filepath")
-    echo ""
-
-    git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -- $filepath | delta --width=$FZF_PREVIEW_COLUMNS
   else
-    echo $(chalk red bold "Unhandled case!")
-    git diff $(if [[ $diff_kind == "staged" ]]; then echo "--cached"; fi) -- $filepath | delta --width=$FZF_PREVIEW_COLUMNS
+    cmd_parts=(
+      echo "Unhandled diff status: $diff_status"
+    )
   fi
+
+  printf "%s\n" "${cmd_parts[@]}"
+}
+
+_generate_diff_format_command() {
+  local input=$1
+  local diff_kind=$2
+
+  local status_code=$(_get_status_code $input)
+  local filepath=$(_get_filepath $input)
+  local oldfilepath=$(_get_oldfilepath $input)
+
+  local code_staged="${status_code:0:1}"
+  local code_unstaged="${status_code:1:1}"
+
+  local diff_status=$(if [[ "$code_unstaged" == " " ]]; then echo "$code_staged"; else echo "$code_unstaged"; fi)
+
+  local -a cmd_parts
+
+  if [[ "$diff_status" == "?" ]]; then
+    cmd_parts=(
+      "bat --color=always"
+    )
+
+  elif [[ "$diff_status" == "R" || "$diff_status" == "T" || "$diff_status" == "C" ]]; then
+    cmd_parts=(
+      "delta --width=$FZF_PREVIEW_COLUMNS"
+    )
+  elif [[ "$diff_status" == "M" || "$diff_status" == "A" || "$diff_status" == "U" || "$diff_status" == "D" ]]; then
+    cmd_parts=(
+      "delta --width=$FZF_PREVIEW_COLUMNS"
+    )
+  else
+    cmd_parts=(
+      echo ""
+    )
+  fi
+
+  printf "%s\n" "${cmd_parts[@]}"
+}
+
+_print_preview() {
+  local input=$(cat)
+
+  local -a command=($(_generate_diff_command $input $1))
+  local -a format_command=($(_generate_diff_format_command $input $1))
+
+  echo $(chalk cyan bold italic "$command")
+  echo ""
+  "${command[@]}" | "${format_command[@]}"
+}
+
+show_diff() {
+  local input=$1
+  local diff_kind=$2
+
+  local -a command=($(_generate_diff_command $input $diff_kind))
+
+  "${command[@]}"
 }
 
 # V2 - interactive status
@@ -192,7 +243,20 @@ gst() {
     fzf --ansi --no-sort \
       --height=80% --layout=reverse \
       --color="hl:bright-white,hl+:bright-white" \
+      --disabled --no-input \
+      --multi \
       --preview-window=right,70%,wrap \
       --preview \
-      'source $ZDOTDIR/git/git.zsh; echo {} | _print_preview'
+      'source $ZDOTDIR/git/git.zsh; echo {} | _print_preview' \
+      --bind "s:change-preview(source $ZDOTDIR/git/git.zsh; echo {} | _print_preview staged)" \
+      --bind "u:change-preview(source $ZDOTDIR/git/git.zsh; echo {} | _print_preview unstaged)" \
+      --bind "d:change-preview(source $ZDOTDIR/git/git.zsh; echo {} | _print_preview both)" \
+      --bind "S:execute(source $ZDOTDIR/git/git.zsh; show_diff {} staged)" \
+      --bind "U:execute(source $ZDOTDIR/git/git.zsh; show_diff {} unstaged)" \
+      --bind "D:execute(source $ZDOTDIR/git/git.zsh; show_diff {} both)" \
+      "$@"
+}
+
+gad() {
+  gst --bind "ctrl-a:become(echo Hello)"
 }
