@@ -83,39 +83,18 @@ get_status_color() {
   fi
 }
 
-enhanced_git_status() {
-  local output=$(git status --porcelain)
-
-  while IFS= read -r line; do
-    local xy=$(echo "$line" | awk '{print $1}')
-    local filepath=$(echo "$line" | awk '{print $2}')
-    local original_filepath=$(echo "$line" | awk '{print $3}')
-
-    # Renamed file, split by arrow
-    if [[ "$line" =~ "^(..)\ (.*)\ ->\ (.*)$" ]]; then
-      xy=${match[1]}
-      original_filepath=${match[3]}
-      filepath=${match[2]}
-    else
-      xy=${line[1, 2]}
-      filepath=${line[4, -1]}
-    fi
-
-    echo -n "$(chalk $(get_status_color $xy) bold $xy) "
-    echo -n "$(chalk $(get_status_color $xy) $filepath)"
-    if [[ -z "$original_filepath" ]]; then
-      echo
-    else
-      echo " -> $(chalk magenta $original_filepath)"
-    fi
-
-  done <<<"$output"
-}
-
 _get_status_code() {
   local input=$1
 
   print "${input:0:2}"
+}
+
+_sanitize_path() {
+  local str="$1"
+
+  str="${str#[\'\"]}" # Removes a leading ' or "
+  str="${str%[\'\"]}" # Removes a trailing ' or "
+  echo $str
 }
 
 _get_filepath() {
@@ -124,9 +103,9 @@ _get_filepath() {
   local path_part=${input:3}
 
   if [[ "$path_part" =~ " -> " ]]; then
-    echo "${path_part#* -> }"
+    echo "$(_sanitize_path "${path_part#* -> }")"
   else
-    echo "$path_part"
+    echo "$(_sanitize_path "$path_part")"
   fi
 }
 
@@ -135,10 +114,29 @@ _get_oldfilepath() {
   local path_part=${input:3}
 
   if [[ "$path_part" =~ " -> " ]]; then
-    echo "${path_part% -> *}"
+    echo "$(_sanitize_path ${path_part% -> *})"
   else
     echo ""
   fi
+}
+
+enhanced_git_status() {
+  local output=$(git status --porcelain)
+
+  while IFS= read -r line; do
+    local xy=$(_get_status_code $line)
+    local filepath=$(_get_filepath $line)
+    local original_filepath=$(_get_oldfilepath $line)
+
+    echo -n "$(chalk $(get_status_color $xy) bold $xy) "
+    if [[ -z "$original_filepath" ]]; then
+      echo -n ""
+    else
+      echo -n "$(chalk magenta $original_filepath) -> "
+    fi
+    echo "$(chalk $(get_status_color $xy) $filepath)"
+
+  done <<<"$output"
 }
 
 _generate_diff_command() {
@@ -237,23 +235,68 @@ show_diff() {
   "${command[@]}"
 }
 
+stage_file() {
+  local input=$1
+
+  local status_code=$(_get_status_code $input)
+  local filepath=$(_get_filepath $input)
+  local oldfilepath=$(_get_oldfilepath $input)
+
+  local path_to_stage=$(if [[ -z "$oldfilepath" ]]; then echo "$filepath"; else echo "$oldfilepath"; fi)
+
+  local code_unstaged="${status_code:1:1}"
+
+  echo "staging $path_to_stage"
+  if [[ "$code_unstaged" != " " ]]; then
+    git add "$path_to_stage"
+  else
+    echo "Nothing to stage"
+  fi
+}
+
+unstage_file() {
+  local input=$1
+
+  local status_code=$(_get_status_code $input)
+  local filepath=$(_get_filepath $input)
+  local oldfilepath=$(_get_oldfilepath $input)
+
+  local path_to_stage=$(if [[ -z "$oldfilepath" ]]; then echo "$filepath"; else echo "$oldfilepath"; fi)
+
+  local code_staged="${status_code:0:1}"
+
+  if [[ "$code_staged" != " " ]]; then
+    git restore --staged "$path_to_stage"
+  else
+    echo "Nothing to unstage"
+  fi
+}
+
 # V2 - interactive status
 gst() {
   enhanced_git_status |
     fzf --ansi --no-sort \
-      --height=80% --layout=reverse \
+      --height=100% --layout=reverse \
       --color="hl:bright-white,hl+:bright-white" \
       --disabled --no-input \
       --multi \
       --preview-window=right,70%,wrap \
       --preview \
       'source $ZDOTDIR/git/git.zsh; echo {} | _print_preview' \
-      --bind "s:change-preview(source $ZDOTDIR/git/git.zsh; echo {} | _print_preview staged)" \
-      --bind "u:change-preview(source $ZDOTDIR/git/git.zsh; echo {} | _print_preview unstaged)" \
-      --bind "d:change-preview(source $ZDOTDIR/git/git.zsh; echo {} | _print_preview both)" \
-      --bind "S:execute(source $ZDOTDIR/git/git.zsh; show_diff {} staged)" \
-      --bind "U:execute(source $ZDOTDIR/git/git.zsh; show_diff {} unstaged)" \
-      --bind "D:execute(source $ZDOTDIR/git/git.zsh; show_diff {} both)" \
+      --bind "1:change-preview(source $ZDOTDIR/git/git.zsh; echo {} | _print_preview staged)" \
+      --bind "2:change-preview(source $ZDOTDIR/git/git.zsh; echo {} | _print_preview unstaged)" \
+      --bind "3:change-preview(source $ZDOTDIR/git/git.zsh; echo {} | _print_preview both)" \
+      --bind "0:execute(source $ZDOTDIR/git/git.zsh; show_diff {} staged)" \
+      --bind "9:execute(source $ZDOTDIR/git/git.zsh; show_diff {} unstaged)" \
+      --bind "8:execute(source $ZDOTDIR/git/git.zsh; show_diff {} both)" \
+      --bind "s:execute-silent(source $ZDOTDIR/git/git.zsh; stage_file {})+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
+      --bind "u:execute-silent(source $ZDOTDIR/git/git.zsh; unstage_file {})+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
+      --bind "S:execute-silent()+reload(enhanced_git_status)" \
+      --bind "U:execute-silent()+reload(enhanced_git_status)" \
+      --bind "alt-s:execute(git add -p)+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
+      --bind "alt-u:execute(git restore -p)+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
+      --bind "ctrl-alt-r:execute-silent()+reload(enhanced_git_status)" \
+      --bind "ctrl-alt-R:execute-silent()+reload(enhanced_git_status)" \
       "$@"
 }
 
