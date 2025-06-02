@@ -166,12 +166,85 @@ print_preview() {
     echo ""
     head -n 50 "$pathspec" | bat --color=always 
   elif [[ "$diff_status" =~ ^(R|T|C|M|A|U|D| ) ]]; then
-    echo $(chalk cyan bold "git diff ${params[@]} -- $pathspec")
+    local cmd="git diff "${params[@]}" -- $pathspec"
+    echo $(chalk cyan bold "$cmd")
     echo ""
-    git diff ${params[@]} -- $pathspec | delta --width=$FZF_PREVIEW_COLUMNS
+    git diff ${params[@]} -- "$pathspec" | delta --width=$FZF_PREVIEW_COLUMNS
   else
     echo $(chalk red bold "Unhandled case!")
   fi
+}
+
+stage_file() {
+  IFS=$'\t' read -r full_status staged unstaged rest pathspec oldpath <<< "$(parse_git_status_line "$1")"
+  if [[ -z "$pathspec" ]]; then
+    echo "No path specified"
+    return
+  fi
+
+  git add "$pathspec"
+}
+
+unstage_file() {
+  IFS=$'\t' read -r full_status staged unstaged rest pathspec oldpath <<< "$(parse_git_status_line "$1")"
+  if [[ -z "$pathspec" ]]; then
+    echo "No path specified"
+    return
+  fi
+
+  git restore --staged "$pathspec"
+}
+
+stage_all() {
+  git add .
+}
+
+unstage_all() {
+  git restore --staged .
+}
+
+patch_stage_file() {
+  IFS=$'\t' read -r full_status staged unstaged rest pathspec oldpath <<< "$(parse_git_status_line "$1")"
+  if [[ -z "$pathspec" ]]; then
+    echo "No path specified"
+    return
+  fi
+
+  if [[ $unstaged == "?" ]]; then
+    echo "Cannot stage untracked file"
+    return
+  fi
+
+  git add -p "$pathspec"
+}
+
+patch_unstage_file() {
+  IFS=$'\t' read -r full_status staged unstaged rest pathspec oldpath <<< "$(parse_git_status_line "$1")"
+  if [[ -z "$pathspec" ]]; then
+    echo "No path specified"
+    return
+  fi
+
+  if [[ $staged == "?" ]]; then
+    echo "Cannot unstage untracked file"
+    return
+  fi
+
+  git restore --staged -p "$pathspec"
+}
+
+reset_file() {
+  IFS=$'\t' read -r full_status staged unstaged rest pathspec oldpath <<< "$(parse_git_status_line "$1")"
+  if [[ -z "$pathspec" ]]; then
+    echo "No path specified"
+    return
+  fi
+
+  if [[ $staged == "?" ]]; then
+    git clean -f "$pathspec"
+  fi
+
+  git checkout -- "$pathspec"
 }
 
 # V2 - interactive status
@@ -181,7 +254,6 @@ gst() {
       --height=100% --layout=reverse \
       --color="hl:bright-white,hl+:bright-white" \
       --disabled --no-input \
-      --multi \
       --preview-window=right,70%,wrap \
       --preview \
       'source $ZDOTDIR/git/git.zsh; print_preview unstaged {}' \
@@ -191,14 +263,13 @@ gst() {
       --bind "0:execute(source $ZDOTDIR/git/git.zsh; print_preview staged {})" \
       --bind "9:execute(source $ZDOTDIR/git/git.zsh; print_preview unstaged {})" \
       --bind "8:execute(source $ZDOTDIR/git/git.zsh; print_preview both {})" \
-      --bind "s:execute-silent(source $ZDOTDIR/git/git.zsh; stage_file {})+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
-      --bind "u:execute-silent(source $ZDOTDIR/git/git.zsh; unstage_file {})+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
-      --bind "S:execute-silent()+reload(enhanced_git_status)" \
-      --bind "U:execute-silent()+reload(enhanced_git_status)" \
-      --bind "alt-s:execute(git add -p)+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
-      --bind "alt-u:execute(git restore -p)+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
-      --bind "ctrl-alt-r:execute-silent()+reload(enhanced_git_status)" \
-      --bind "ctrl-alt-R:execute-silent()+reload(enhanced_git_status)" \
+      --bind "s:execute-silent(source $ZDOTDIR/git/git.zsh; stage_file {})+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)+down" \
+      --bind "u:execute-silent(source $ZDOTDIR/git/git.zsh; unstage_file {})+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)+up" \
+      --bind "S:execute-silent(source $ZDOTDIR/git/git.zsh; stage_all)+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
+      --bind "U:execute-silent(source $ZDOTDIR/git/git.zsh; unstage_all)+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)" \
+      --bind "alt-s:execute(source $ZDOTDIR/git/git.zsh; patch_stage_file {})+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)+down" \
+      --bind "alt-u:execute(source $ZDOTDIR/git/git.zsh; patch_unstage_file {})+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)+up" \
+      --bind "ctrl-alt-r:execute-silent(source $ZDOTDIR/git/git.zsh; reset_file {})+reload-sync(source $ZDOTDIR/git/git.zsh; enhanced_git_status)+down" \
       "$@"
 }
 
