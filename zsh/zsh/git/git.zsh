@@ -229,10 +229,14 @@ alias gca="git add . && git commit"
 alias gcam="gst && git commit --amend --no-edit"
 alias gcaam="git add . && git commit --amend --no-edit"
 
+gbr() {
+  git for-each-ref --format='%(refname:short)' refs/heads refs/remotes | grep -v '\->' | fzf
+}
+
 # Interactive branch switch
 gsw() {
   local branch
-  branch=$(git for-each-ref --format='%(refname:short)' refs/heads refs/remotes | grep -v '\->' | fzf)
+  branch=$(gbr)
   [[ -z "$branch" ]] && return
 
   if [[ "$branch" == origin/* ]]; then
@@ -274,4 +278,23 @@ gfix() {
 
   # Commit as fixup into selected commit
   git commit --fixup="$commit_hash"
+}
+
+grb() {
+  local commit
+  commit=$(glog | fzf --ansi --height=40% --reverse --prompt="Pick commit to rebase > ")
+  [[ -z "$commit" ]] && echo "Aborted." && return 1
+
+  local commit_hash=$(echo "$commit" | awk '{print $1}')
+  echo "Rebasing: $commit"
+
+  git rebase -i --autosquash "$commit_hash"
+}
+
+grbo() {
+  local branch
+  branch=$(gbr)
+  [[ -z "$branch" ]] && echo "Aborted." && return 1
+
+  git rebase -i "$branch"
 }
