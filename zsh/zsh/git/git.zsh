@@ -4,63 +4,6 @@ source "$ZDOTDIR/chalk.zsh"
 source "$ZDOTDIR/fancy_symbols.zsh"
 source "$ZDOTDIR/utils.zsh"
 
-# Git aliases
-#############
-# alias gst="git status"
-alias gpl="git pull"
-alias gps="git push"
-alias gpsf="git push --force-with-lease"
-alias gf="git fetch"
-
-alias gc="git commit"
-alias gca="git add . && git commit"
-alias gcam="git commit --amend --no-edit"
-alias gcaam="git add . && git commit --amend --no-edit"
-
-# Interactive branch switch
-gsw() {
-  local branch
-  # git fetch --all --prune
-  branch=$(git branch -a | grep -v HEAD | sed 's/^..//' | fzf)
-  [[ -z "$branch" ]] && return
-
-  if [[ "$branch" == remotes/* ]]; then
-    local remote_branch=${branch#remotes/}
-    git switch --track "$remote_branch"
-  else
-    git switch "$branch"
-  fi
-}
-
-gsc() {
-  if [ -n "$1" ]; then
-    echo "Checking out new branch from develop..."
-    git checkout develop
-    git pull
-    git switch -c "$1"
-  else
-    echo "Error: You need to specify branch name!"
-  fi
-}
-
-gscm() {
-  if [ -n "$1" ]; then
-    echo "Checking out new branch from master..."
-    git checkout master
-    git pull
-    git switch -c "$1"
-  else
-    echo "Error: You need to specify branch name!"
-  fi
-}
-
-alias gprstale="git branch -v | grep '\[gone\]' | awk '{print \$1}' | xargs -r git branch -D"
-alias gprstaleman="git branch -v | fzf -m --reverse --info=inline | awk '{print \$1}' | xargs -r git branch -D"
-
-# Logs
-alias glog="git log --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
-alias glogg="git log --graph --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
-
 get_status_color() {
   # Unstaged
   if [[ "$1" == "??" ]]; then
@@ -273,6 +216,62 @@ gst() {
       "$@"
 }
 
-gad() {
-  gst --bind "ctrl-a:become(echo Hello)"
+# Git aliases
+#############
+# alias gst="git status"
+alias gpl="git pull"
+alias gps="git push"
+alias gpsf="git push --force-with-lease"
+alias gf="git fetch"
+
+alias gc="gst && git commit"
+alias gca="git add . && git commit"
+alias gcam="gst && git commit --amend --no-edit"
+alias gcaam="git add . && git commit --amend --no-edit"
+
+# Interactive branch switch
+gsw() {
+  local branch
+  branch=$(git for-each-ref --format='%(refname:short)' refs/heads refs/remotes | grep -v '\->' | fzf)
+  [[ -z "$branch" ]] && return
+
+  if [[ "$branch" == origin/* ]]; then
+    git switch --track "${branch}"
+  else
+    git switch "$branch"
+  fi
+}
+
+gco() {
+  echo -n "New branch name: "
+  read branch
+  [[ -z "$branch" ]] && echo "Aborted." && return 1
+  git switch -c "$branch"
+}
+
+alias gprstale="git branch -v | grep '\[gone\]' | awk '{print \$1}' | xargs -r git branch -D"
+alias gprstaleman="git branch -v | fzf -m --reverse --info=inline | awk '{print \$1}' | xargs -r git branch -D"
+
+# Logs
+alias glog="git log --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
+alias glogg="git log --graph --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
+
+alias gbsc="git bisect start"
+alias gbsg="git bisect good"
+alias gbsb="git bisect bad"
+alias gbsr="git bisect reset"
+
+gfix() {
+  local commit
+  commit=$(glog | fzf --ansi --height=40% --reverse --prompt="Pick commit to fixup > ")
+  [[ -z "$commit" ]] && echo "Aborted." && return 1
+
+  local commit_hash=$(echo "$commit" | awk '{print $1}')
+  echo "Fixing up: $commit"
+
+  # Stage interactively using your gst tool
+  gst || { echo "Staging failed or cancelled."; return 1; }
+
+  # Commit as fixup into selected commit
+  git commit --fixup="$commit_hash"
 }
