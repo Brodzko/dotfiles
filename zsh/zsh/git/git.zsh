@@ -190,6 +190,45 @@ reset_file() {
   git checkout -- "$pathspec"
 }
 
+print_gst_header() {
+  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+  if [ -z "$CURRENT_BRANCH" ]; then
+      echo "Error: Not in a Git repository."
+      exit 1
+  fi
+
+  REMOTE_TRACKING_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
+
+  AHEAD_COMMITS=0
+  BEHIND_COMMITS=0
+
+  if [ -n "$REMOTE_TRACKING_BRANCH" ]; then
+      git remote update > /dev/null 2>&1
+      AHEAD_COMMITS=$(git rev-list --count "$REMOTE_TRACKING_BRANCH".."$CURRENT_BRANCH")
+      BEHIND_COMMITS=$(git rev-list --count "$CURRENT_BRANCH".."${REMOTE_TRACKING_BRANCH}")
+  fi
+
+  local gstatus=$(chalk bold "[$(chalk cyan "$SYM_GIT_COMPARE $CURRENT_BRANCH") $(chalk green bold "$SYM_ARROW_UP$AHEAD_COMMITS") $(chalk red bold "$SYM_ARROW_DOWN$BEHIND_COMMITS")]")
+
+  local shortcut_line_1=$(chalk magenta bold dim "$(lpad "[1]: P. staged" 20) $(lpad "[2]: P. unstaged" 20) $(lpad "[3]: P. both" 20)")
+  local shortcut_line_2=$(chalk magenta bold dim "$(lpad "[0]: D. staged" 20) $(lpad "[9]: D. unstaged" 20) $(lpad "[8]: D. both" 20)")
+  local shortcut_line_3=$(chalk magenta bold dim "$(lpad "[s]: Stage" 20) $(lpad "[u]: Unstage" 20)")
+  local shortcut_line_4=$(chalk magenta bold dim "$(lpad "[S]: Stage all" 20) $(lpad "[U]: Unstage all" 20)")
+  local shortcut_line_5=$(chalk magenta bold dim "$(lpad "[alt-s]: Patch stage" 20) $(lpad "[alt-u]: Patch unstage" 20)")
+  local shortcut_line_6=$(chalk magenta bold dim "$(lpad "[ctrl-alt-r]: Revert" 20)")
+
+  echo $gstatus
+  echo ""
+  echo $shortcut_line_1
+  echo $shortcut_line_2
+  echo $shortcut_line_3
+  echo $shortcut_line_4
+  echo $shortcut_line_5
+  echo $shortcut_line_6
+  echo ""
+  echo $(chalk cyan bold "git status --porcelain")
+}
 # V2 - interactive status
 gst() {
   enhanced_git_status |
@@ -197,7 +236,8 @@ gst() {
       --height=100% --layout=reverse \
       --color="hl:bright-white,hl+:bright-white" \
       --disabled --no-input \
-      --preview-window=right,70%,wrap \
+      --preview-window=right,66%,wrap \
+      --header="$(print_gst_header)" \
       --preview \
       'source $ZDOTDIR/git/git.zsh; print_preview unstaged {}' \
       --bind "1:change-preview(source $ZDOTDIR/git/git.zsh; print_preview staged {})" \

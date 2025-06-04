@@ -9,4 +9,8 @@ export SYM_EYE=$'\uf06e'
 export SYM_EYE_CHECK=$'\U00F0D04'
 export SYM_LINE_HORIZONTAL=$'\uf45b'
 
+export SYM_ARROW_UP=$'\ueaa1'
+export SYM_ARROW_DOWN=$'\uea9a'
+
 export SYM_GIT_COMPARE=$'\uf47f'
+export SYM_GIT_BRANCH=$'\ue725'
