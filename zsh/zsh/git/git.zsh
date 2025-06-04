@@ -230,13 +230,13 @@ alias gcam="gst && git commit --amend --no-edit"
 alias gcaam="git add . && git commit --amend --no-edit"
 
 gbr() {
-  git for-each-ref --format='%(refname:short)' refs/heads refs/remotes | grep -v '\->' | fzf
+  git for-each-ref --color=always --format='%(refname:short)' refs/heads refs/remotes | grep -v '\->' | fzf --reverse --height=40% "$@"
 }
 
 # Interactive branch switch
 gsw() {
   local branch
-  branch=$(gbr)
+  branch=$(gbr --prompt="Pick branch to switch > ")
   [[ -z "$branch" ]] && return
 
   if [[ "$branch" == origin/* ]]; then
@@ -257,7 +257,18 @@ alias gprstale="git branch -v | grep '\[gone\]' | awk '{print \$1}' | xargs -r g
 alias gprstaleman="git branch -v | fzf -m --reverse --info=inline | awk '{print \$1}' | xargs -r git branch -D"
 
 # Logs
-alias glog="git log --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
+alias _glog="git log --color=always --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
+
+show_commit() {
+  local commit=$1
+
+  git show $1 | delta
+}
+
+glog() {
+  _glog| fzf --ansi --height=40% --reverse --bind="ctrl-d:execute(source $ZDOTDIR/git/git.zsh; show_commit {1})" "$@"
+}
+
 alias glogg="git log --graph --pretty=format:'%C(auto)%h%C(reset) %C(auto)%d%C(reset) %s %C(cyan)[%an]%C(reset) %C(dim white)(%cr)%C(reset)' --abbrev-commit --date=relative"
 
 alias gbsc="git bisect start"
@@ -267,7 +278,7 @@ alias gbsr="git bisect reset"
 
 gfix() {
   local commit
-  commit=$(glog | fzf --ansi --height=40% --reverse --prompt="Pick commit to fixup > ")
+  commit=$(glog --prompt="Pick commit to fixup > ")
   [[ -z "$commit" ]] && echo "Aborted." && return 1
 
   local commit_hash=$(echo "$commit" | awk '{print $1}')
@@ -282,7 +293,7 @@ gfix() {
 
 grb() {
   local commit
-  commit=$(glog | fzf --ansi --height=40% --reverse --prompt="Pick commit to rebase > ")
+  commit=$(glog --prompt="Pick commit to rebase > ")
   [[ -z "$commit" ]] && echo "Aborted." && return 1
 
   local commit_hash=$(echo "$commit" | awk '{print $1}')
@@ -293,8 +304,12 @@ grb() {
 
 grbo() {
   local branch
-  branch=$(gbr)
+  branch=$(gbr --prompt="Pick branch to rebase onto > ")
   [[ -z "$branch" ]] && echo "Aborted." && return 1
 
-  git rebase -i "$branch"
+  git rebase "$branch"
+}
+
+ghist() {
+  glog | fzf --ansi
 }
