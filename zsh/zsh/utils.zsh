@@ -66,6 +66,12 @@ lpad() {
   printf '%-*s' "$n" "$str"
 }
 
+rpad() {
+  local str="$1"
+  local n="$2"
+  printf '%*s' "$n" "$str"
+}
+
 # Fixed lenth string
 fix_length() {
   local str="$1"
