@@ -280,9 +280,9 @@ gsw() {
   [[ -z "$branch" ]] && return
 
   if [[ "$branch" == origin/* ]]; then
-    git switch --track "${branch}"
+    git switch --track "$branch" && git pull
   else
-    git switch "$branch"
+    git switch "$branch" && git pull
   fi
 }
 
@@ -350,6 +350,13 @@ grbo() {
   git rebase "$branch"
 }
 
-ghist() {
-  glog | fzf --ansi
+greset() {
+  local commit
+  commit=$(glog --prompt="Pick commit to reset > ")
+  [[ -z "$commit" ]] && echo "Aborted." && return 1
+
+  local commit_hash=$(echo "$commit" | awk '{print $1}')
+  echo "Resetting: $commit"
+
+  git reset "$@" "$commit_hash"
 }

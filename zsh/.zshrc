@@ -141,3 +141,6 @@ source "$ZDOTDIR/elis_be.zsh"
 
 # Syntax higlighting, needs to be at the end of file
 source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# Added by Windsurf
+export PATH="/Users/martin.brodziansky@rossum.ai/.codeium/windsurf/bin:$PATH"
