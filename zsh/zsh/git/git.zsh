@@ -269,8 +269,15 @@ alias gca="git add . && git commit"
 alias gcam="gst && git commit --amend --no-edit"
 alias gcaam="git add . && git commit --amend --no-edit"
 
+alias gs="git stash"
+alias gsp="git stash pop"
+
+gsa() {
+  git stash list | fzf --delimiter ":" --accept-nth '{1}' --reverse --height=40% "$@"  | xargs -r git stash apply
+}
+
 gbr() {
-  git for-each-ref --color=always --format='%(refname:short)' refs/heads refs/remotes | grep -v '\->' | fzf --reverse --height=40% "$@"
+  git for-each-ref --color=always --sort=-committerdate --format='%(refname:short)' refs/heads refs/remotes | grep -v '\->' | fzf --reverse --height=40% "$@"
 }
 
 # Interactive branch switch

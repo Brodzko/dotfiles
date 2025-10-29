@@ -1,0 +1,16 @@
+<%
+  subdir = ENV["DEV_PATH"] || '.'
+  root_path = File.expand_path(File.join(Dir.home, "rossum", subdir))
+  session_name = File.basename(root_path)
+%>
+
+name: <%= session_name %>
+root: "<%= root_path %>"
+
+windows:
+  - main:
+      layout: 70c2,165x49,0,0{110x49,0,0,70,54x49,111,0[54x24,111,0,73,54x24,111,25,74]}
+      panes:
+        - amp --ide
+        - pnx run elis:start
+        - #empty
