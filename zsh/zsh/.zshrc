@@ -30,6 +30,10 @@ function update_tab_title() {
   echo -ne "\033]1;$title\007"
 }
 
+efdev() {
+  DEV_PATH="$1" tmuxinator start dev
+}
+
 # Call before every prompt
 preexec_functions+=(update_tab_title)
 
@@ -109,10 +113,6 @@ export COREPACK_ENABLE_AUTO_PIN=0
 
 alias pnx="pnpm nx"
 
-efdev() {
-  DEV_PATH="$1" tmuxinator start dev
-}
-
 custom_ls() {
   eza --icons --color=always --git-ignore "$@"
 }
@@ -148,4 +148,3 @@ source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 export PATH="/Users/martin.brodziansky@rossum.ai/.codeium/windsurf/bin:$PATH"
 
 export DOCKER_HOST="unix://$HOME/.colima/docker.sock"
-
