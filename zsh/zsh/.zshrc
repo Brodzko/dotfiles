@@ -102,7 +102,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 
 # pnpm
-export PNPM_HOME="/Users/martin.brodziansky@rossum.ai/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
 *":$PNPM_HOME:"*) ;;
 *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -145,6 +145,6 @@ source "$ZDOTDIR/elis_be.zsh"
 source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Added by Windsurf
-export PATH="/Users/martin.brodziansky@rossum.ai/.codeium/windsurf/bin:$PATH"
+export PATH="$HOME/.codeium/windsurf/bin:$PATH"
 
 export DOCKER_HOST="unix://$HOME/.colima/docker.sock"

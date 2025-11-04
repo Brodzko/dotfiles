@@ -6,6 +6,7 @@ email = martin.brodziansky@rossum.ai
 [core]
 pager = env LESS='' delta
 editor = nvim
+excludesfile = ~/.gitignore_global
 [interactive]
 diffFilter = delta --color-only
 [delta]

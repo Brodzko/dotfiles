@@ -1,0 +1,8 @@
+# Stow will ignore these files/patterns when creating symlinks
+\.git
+\.gitignore
+^/README.*
+^/LICENSE.*
+^/bootstrap
+^/Brewfile
+.DS_Store
