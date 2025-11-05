@@ -1,2 +1,2 @@
 export ZDOTDIR="${HOME}/zsh"
-export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"

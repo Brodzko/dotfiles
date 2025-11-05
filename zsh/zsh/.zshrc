@@ -5,6 +5,8 @@ source "$ZDOTDIR/.zsh_secrets.zsh"
 if [[ -f "/opt/homebrew/bin/brew" ]]; then
   # If you're using macOS, you'll want this enabled
   eval "$(/opt/homebrew/bin/brew shellenv)"
+  # Ensure homebrew bin takes precedence over /usr/local/bin
+  export PATH="/opt/homebrew/bin:${PATH#/opt/homebrew/bin:}"
 fi
 
 function update_tab_title() {
@@ -131,7 +133,7 @@ export LSCOLORS="gxBxhxDxfxhxhxhxhxcxcx"
 # General aliases
 alias home="cd $HOME"
 alias clr="clear"
-alias q="source '$HOME/.zshrc'"
+alias q="source '$HOME/zsh/.zshrc'"
 
 export FZF_ALT_C_COMMAND='fd --type d --follow --hidden --exclude node_modules --exclude .git --exclude .Trash --exclude .cache'
 
