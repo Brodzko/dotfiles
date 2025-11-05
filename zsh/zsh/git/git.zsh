@@ -1,5 +1,8 @@
 #!/usr/bin/env zsh
 
+# Ensure homebrew git is used
+export PATH="/opt/homebrew/bin:${PATH#/opt/homebrew/bin:}"
+
 source "$ZDOTDIR/chalk.zsh"
 source "$ZDOTDIR/fancy_symbols.zsh"
 source "$ZDOTDIR/utils.zsh"
@@ -135,7 +138,7 @@ unstage_file() {
     return
   fi
 
-  git restore --staged "$pathspec"
+  git restore --staged "$pathspec" 2>/dev/null
 }
 
 stage_all() {
@@ -143,7 +146,7 @@ stage_all() {
 }
 
 unstage_all() {
-  git restore --staged .
+  git restore --staged . 2>/dev/null
 }
 
 patch_stage_file() {
