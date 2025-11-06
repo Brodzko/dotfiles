@@ -150,3 +150,6 @@ source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 export PATH="$HOME/.codeium/windsurf/bin:$PATH"
 
 export DOCKER_HOST="unix://$HOME/.colima/docker.sock"
+
+source "$ZDOTDIR/brew.zsh"
+
