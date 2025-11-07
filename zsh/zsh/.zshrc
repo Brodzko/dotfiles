@@ -33,7 +33,7 @@ function update_tab_title() {
 }
 
 efdev() {
-  DEV_PATH="$1" tmuxinator start dev
+  DEV_PATH="$1" tmuxinator start ef-dev
 }
 
 # Call before every prompt
