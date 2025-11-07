@@ -78,7 +78,6 @@ zinit snippet OMZP::aws
 zinit snippet OMZP::kubectl
 zinit snippet OMZP::kubectx
 zinit snippet OMZP::command-not-found
-zinit snippet OMZP::nvm
 
 zinit ice as"program" pick"bin/git-fuzzy"
 zinit light bigH/git-fuzzy
@@ -99,9 +98,8 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 eval "$(fzf --zsh)"
 eval "$(starship init zsh)"
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+# fnm - Fast Node Manager
+eval "$(fnm env --use-on-cd)"
 
 # pnpm
 export PNPM_HOME="$HOME/Library/pnpm"
