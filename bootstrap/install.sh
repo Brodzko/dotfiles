@@ -71,7 +71,8 @@ fi
 
 echo -e "\n${YELLOW}Setting up secrets...${NC}"
 if [ ! -f "$HOME/zsh/.zsh_secrets.zsh" ]; then
-    echo -e "  ${YELLOW}Note: Copy $HOME/zsh/.zsh_secrets.example.zsh to $HOME/zsh/.zsh_secrets.zsh and add your secrets${NC}"
+    echo -e "  ${YELLOW}Note: Copying $HOME/zsh/.zsh_secrets.example.zsh to $HOME/zsh/.zsh_secrets.zsh. Add your secrets here${NC}"
+    cp ./zsh/zsh/.zsh_secrets.example.zsh ~/zsh/.zsh_secrets.zsh
 fi
 
 echo -e "\n${GREEN}✓ Dotfiles installation complete!${NC}"
