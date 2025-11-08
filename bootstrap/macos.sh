@@ -21,7 +21,8 @@ echo -e "${GREEN}Configuring macOS defaults...${NC}"
 echo -e "\n${YELLOW}Configuring UI/UX...${NC}"
 
 # Disable the sound effects on boot
-sudo nvram SystemAudioVolume=" "
+sudo nvram SystemAudioVolume="%00"
+defaults write NSGlobalDomain com.apple.sound.uiaudio.enabled -int 0
 
 # Expand save panel by default
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
@@ -59,6 +60,7 @@ echo -e "\n${YELLOW}Configuring input devices...${NC}"
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
 defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+defaults write NSGlobalDomain com.apple.swipescrolldirection -bool FALSE
 
 # Increase sound quality for Bluetooth headphones/headsets
 defaults write com.apple.BluetoothAudioAgent "Apple Bitpool Min (editable)" -int 40
