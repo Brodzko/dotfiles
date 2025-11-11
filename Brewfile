@@ -1,66 +1,67 @@
-tap "ankitpokhrel/jira-cli"
 
+# Casks - Applications
+# Casks - Fonts
 # Core utilities
+# Database
+# Development tools
+# Docker & Kubernetes
+# Git tools
+# VSCode Extensions
 brew "bat"
 brew "colima"
 brew "coreutils"
-brew "eza"
-brew "fd"
-brew "fzf"
-brew "htop"
-brew "jq"
-brew "mas"
-brew "neovim"
-brew "ripgrep"
-brew "starship"
-brew "stow"
-brew "tree"
-brew "wget"
-brew "zsh-syntax-highlighting"
-
-# Git tools
-brew "gh"
-brew "git"
-brew "git-delta"
-brew "glab"
-brew "tig"
-
-# Docker & Kubernetes
-brew "docker"
 brew "docker-buildx"
 brew "docker-compose"
-brew "helm"
-brew "kubernetes-cli"
-
-# Database
-brew "pgcli"
-brew "postgresql@14", restart_service: :changed
-
-# Development tools
+brew "docker"
+brew "eza"
+brew "fd"
 brew "fnm"
+brew "fzf"
+brew "gh"
+brew "git-delta"
+brew "git"
+brew "glab"
+brew "helm"
+brew "htop"
 brew "jira-cli"
+brew "jq"
+brew "kubernetes-cli"
 brew "libmagic"
+brew "mas"
+brew "neovim"
+brew "pgcli"
 brew "pigz"
 brew "poetry"
 brew "poppler"
+brew "postgresql@14", restart_service: :changed
 brew "pybind11"
 brew "python@3.12"
 brew "qpdf"
 brew "re2"
+brew "ripgrep"
+brew "starship"
+brew "stow"
+brew "tig"
 brew "tmux"
 brew "tmuxinator"
+brew "tree"
 brew "uv"
+brew "wget"
 brew "yamllint"
 brew "zbar"
-
-# Casks - Applications
+brew "zsh-syntax-highlighting"
 cask "1password"
 cask "brave-browser"
 cask "firefox"
+cask "font-cascadia-code-nf"
+cask "font-fira-code"
+cask "font-hack-nerd-font"
+cask "font-meslo-lg-nerd-font"
 cask "google-chrome"
 cask "iterm2"
 cask "karabiner-elements"
 cask "keyboardcleantool"
+cask "mysides"
 cask "ngrok"
 cask "obsidian"
 cask "openlens"
@@ -69,14 +70,7 @@ cask "raycast"
 cask "slack"
 cask "visual-studio-code"
 cask "vlc"
-
-# Casks - Fonts
-cask "font-cascadia-code-nf"
-cask "font-fira-code"
-cask "font-hack-nerd-font"
-cask "font-meslo-lg-nerd-font"
-
-# VSCode Extensions
+tap "ankitpokhrel/jira-cli"
 vscode "ancientlord.nightowl-theme"
 vscode "avetis.tokyo-night"
 vscode "ckolkman.vscode-postgres"
@@ -89,8 +83,8 @@ vscode "enkia.tokyo-night"
 vscode "esbenp.prettier-vscode"
 vscode "fnando.linter"
 vscode "foxundermoon.shell-format"
-vscode "github.copilot"
 vscode "github.copilot-chat"
+vscode "github.copilot"
 vscode "github.vscode-github-actions"
 vscode "gitlab.gitlab-workflow"
 vscode "gruntfuggly.todo-tree"
