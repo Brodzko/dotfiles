@@ -151,3 +151,8 @@ export DOCKER_HOST="unix://$HOME/.colima/docker.sock"
 
 source "$ZDOTDIR/brew.zsh"
 
+dotfiles() {
+  cd ~/$DOT_DIR
+  code .
+}
+
