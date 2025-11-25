@@ -99,7 +99,7 @@ eval "$(fzf --zsh)"
 eval "$(starship init zsh)"
 
 # fnm - Fast Node Manager
-eval "$(fnm env --use-on-cd)"
+eval "$(fnm env)"
 
 # pnpm
 export PNPM_HOME="$HOME/Library/pnpm"
@@ -155,4 +155,6 @@ dotfiles() {
   cd ~/$DOT_DIR
   code .
 }
+export EDITOR="nvim"
+export VISUAL="$EDITOR"
 
