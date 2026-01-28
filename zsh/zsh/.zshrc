@@ -158,3 +158,8 @@ dotfiles() {
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
 
+[ -f "/Users/martin.brodziansky@rossum.ai/.ghcup/env" ] && . "/Users/martin.brodziansky@rossum.ai/.ghcup/env" # ghcup-env
+
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+
+alias code-maat="java -jar $HOME/code-maat-1.0.4-standalone.jar"
