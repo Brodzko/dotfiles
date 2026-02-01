@@ -4,6 +4,9 @@
   "amp.notifications.system.enabled": false,
   "amp.tab.enabled": false,
   "amp.mcpServers": {
+    "gitlab": {
+      "command": "/Users/martin.brodziansky@rossum.ai/.config/amp/scripts/gitlab-mcp.sh"
+    },
     "mui-mcp": {
       "command": "npx",
       "args": [

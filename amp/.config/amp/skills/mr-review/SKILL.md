@@ -1,7 +1,7 @@
 ---
 name: mr-review
 description: Review an existing MR from someone else. Read-only - no edits, just collecting notes and questions for feedback.
-tools: [Bash, Read, Grep, glob]
+tools: [Bash, Read, Grep, glob, mcp__gitlab__get_merge_request, mcp__gitlab__get_merge_request_diffs, mcp__gitlab__mr_discussions, mcp__gitlab__create_merge_request_thread, mcp__gitlab__approve_merge_request]
 ---
 
 # MR Review (Others' Code)
@@ -14,6 +14,7 @@ Review someone else's merge request. **Read-only** - no code edits, only collect
 - **Always read `~/.config/amp/REVIEWER.md`** for my reviewer personality and preferences
 - Ask for the target branch (default: `origin/develop`, sometimes `origin/master`) at start of review
 - When discussing code, always open the file in diff view first so I can see the changes
+- **Fetch MR data via GitLab MCP** at the start using `get_merge_request` and `get_merge_request_diffs` - this gives you `diff_refs` needed for posting comments later
 
 ## Getting Changes in This Branch
 
@@ -119,6 +120,21 @@ At end of review, be ready to output:
 ```
 
 Format should be suitable for pasting into MR comments.
+
+## Posting Feedback to GitLab
+
+When I sign off on the summary:
+
+1. **Ask for permission** before posting any comments to GitLab
+2. **Post each comment at the exact file:line location** using `create_merge_request_thread`:
+   - Use `diff_refs` from the MR data fetched at setup
+   - Set `position.position_type` to `"text"`
+   - Set `old_path` and `new_path` to the file path
+   - Set `new_line` or `old_line` based on whether it's an added/modified or deleted line
+3. **Ask for permission** before approving the MR
+4. If approved, use `approve_merge_request` to approve
+
+**Never post comments or approve without explicit sign-off.**
 
 ## Style
 
