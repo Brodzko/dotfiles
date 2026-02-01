@@ -1,0 +1,24 @@
+{
+  "amp.git.commit.ampThread.enabled": false,
+  "amp.git.commit.coauthor.enabled": false,
+  "amp.notifications.system.enabled": false,
+  "amp.tab.enabled": false,
+  "amp.mcpServers": {
+    "mui-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mui/mcp@latest"
+      ]
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-6c1ab137-87b5-4d2f-bde9-5c0ea007e469"
+      }
+    }
+  },
+  "amp.tools.disable": [
+    "librarian"
+  ]
+}
