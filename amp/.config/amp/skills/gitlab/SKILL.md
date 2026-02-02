@@ -69,6 +69,24 @@ glab ci view                           # View current pipeline
 glab job list                          # List jobs
 ```
 
+### Debugging Failed MR Pipelines
+
+This project uses child pipelines, so you need to check both parent and child:
+
+```bash
+# 1. Get pipeline ID from MR
+glab mr view <iid> -F json | jq '{pipeline_id: .pipeline.id, status: .pipeline.status}'
+
+# 2. Check for child pipelines (this project uses them)
+glab api projects/:fullpath/pipelines/<pipeline_id>/bridges?per_page=100 | jq '[.[] | {name: .name, status: .status, child_id: .downstream_pipeline.id}]'
+
+# 3. Get failed jobs from child pipeline
+glab api projects/:fullpath/pipelines/<child_pipeline_id>/jobs?per_page=100 | jq '[.[] | select(.status == "failed") | {name: .name, stage: .stage, id: .id}]'
+
+# 4. Get job logs (last 100 lines)
+glab api projects/:fullpath/jobs/<job_id>/trace 2>/dev/null | tail -100
+```
+
 ## MR Discussions (Inline Code Review Threads)
 
 ### Get diff_refs (needed for creating inline threads)

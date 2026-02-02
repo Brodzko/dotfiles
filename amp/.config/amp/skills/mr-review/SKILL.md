@@ -14,6 +14,11 @@ Review someone else's merge request. **Read-only** - no code edits, only collect
 - Always check the repo's AGENTS.md for conventions and context
 - **Always read `~/.config/amp/REVIEWER.md`** for my reviewer personality and preferences
 - Ask for the target branch (default: `origin/develop`, sometimes `origin/master`) at start of review
+- **Checkout the source branch** before starting the review:
+  ```bash
+  git fetch origin
+  git checkout <source-branch>
+  ```
 - When discussing code, always open the file in diff view first so I can see the changes
 - **Fetch MR data via glab CLI** at the start:
   ```bash
