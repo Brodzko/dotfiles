@@ -31,7 +31,7 @@ This file captures my code review preferences and evolves over time.
 
 ## Naming Conventions
 
-<!-- Naming preferences discovered during reviews -->
+- Props types should be `ComponentNameProps`, not just `ComponentName`
 
 ## Architecture Preferences
 
@@ -46,8 +46,10 @@ This file captures my code review preferences and evolves over time.
 ### Like
 
 - Functional and immutable code
-- `remeda` utilities for data transformations
+- `remeda` utilities for data transformations (`R.randomInteger`, `R.truncate`, `R.indexBy`, `R.doNothing`)
 - Explicit types over inference where it aids readability
+- `Prettify<>` wrapper for intersection types
+- Router `Link` components for navigation (enables cmd+click)
 
 ### Dislike
 
@@ -56,6 +58,9 @@ This file captures my code review preferences and evolves over time.
 - Class components
 - Mutable patterns (`let`, push/mutate)
 - eslint-disable comments (prefer fixing the issue)
+- `condition && <Component />` in JSX - prefer ternary with explicit `null`
+- `gap` on MUI Stack - prefer `spacing` + `useFlexGap`
+- Custom utility functions when Remeda has equivalent
 
 ### Soft Dislikes (meh, not worth being nitpicky)
 
