@@ -22,6 +22,7 @@
                     },
                     {
                         "description": "hyper+; -> enter",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -38,6 +39,7 @@
                     },
                     {
                         "description": "Caps Lock magic: tap = escape, hold = hyper",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -58,6 +60,7 @@
                     },
                     {
                         "description": "Vim arrows",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -107,6 +110,7 @@
                     },
                     {
                         "description": "uio deletions",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -155,6 +159,7 @@
                     },
                     {
                         "description": "Vim-like selection arrows nm,.",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -224,6 +229,7 @@
                     },
                     {
                         "description": "Quick open elis-frontend",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {

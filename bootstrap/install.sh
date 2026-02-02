@@ -35,6 +35,7 @@ PACKAGES=(
     "bat"
     "git"
     "karabiner"
+    "launchd"
     "nvim"
     "ssh"
     "starship"
@@ -73,6 +74,27 @@ echo -e "\n${YELLOW}Setting up secrets...${NC}"
 if [ ! -f "$HOME/zsh/.zsh_secrets.zsh" ]; then
     echo -e "  ${YELLOW}Note: Copying $HOME/zsh/.zsh_secrets.example.zsh to $HOME/zsh/.zsh_secrets.zsh. Add your secrets here${NC}"
     cp ./zsh/zsh/.zsh_secrets.example.zsh ~/zsh/.zsh_secrets.zsh
+fi
+
+echo -e "\n${YELLOW}Setting up LaunchAgents...${NC}"
+# Symlink LaunchAgents and load them
+LAUNCHAGENTS_SRC="$HOME/.config/launchd/agents"
+LAUNCHAGENTS_DST="$HOME/Library/LaunchAgents"
+
+if [ -d "$LAUNCHAGENTS_SRC" ]; then
+    mkdir -p "$LAUNCHAGENTS_DST"
+    for plist in "$LAUNCHAGENTS_SRC"/*.plist; do
+        if [ -f "$plist" ]; then
+            plist_name=$(basename "$plist")
+            # Create symlink
+            ln -sf "$plist" "$LAUNCHAGENTS_DST/$plist_name"
+            echo -e "  Linked ${GREEN}$plist_name${NC}"
+            # Load the agent
+            launchctl unload "$LAUNCHAGENTS_DST/$plist_name" 2>/dev/null || true
+            launchctl load "$LAUNCHAGENTS_DST/$plist_name"
+            echo -e "  Loaded ${GREEN}$plist_name${NC}"
+        fi
+    done
 fi
 
 echo -e "\n${GREEN}✓ Dotfiles installation complete!${NC}"
