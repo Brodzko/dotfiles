@@ -1,7 +1,8 @@
 ---
 name: mr-review
 description: Review an existing MR from someone else. Read-only - no edits, just collecting notes and questions for feedback.
-tools: [Bash, Read, Grep, glob, mcp__gitlab__get_merge_request, mcp__gitlab__get_merge_request_diffs, mcp__gitlab__mr_discussions, mcp__gitlab__create_merge_request_thread, mcp__gitlab__approve_merge_request]
+tools: [Bash, Read, Grep, glob]
+skillDependencies: [gitlab]
 ---
 
 # MR Review (Others' Code)
@@ -14,7 +15,14 @@ Review someone else's merge request. **Read-only** - no code edits, only collect
 - **Always read `~/.config/amp/REVIEWER.md`** for my reviewer personality and preferences
 - Ask for the target branch (default: `origin/develop`, sometimes `origin/master`) at start of review
 - When discussing code, always open the file in diff view first so I can see the changes
-- **Fetch MR data via GitLab MCP** at the start using `get_merge_request` and `get_merge_request_diffs` - this gives you `diff_refs` needed for posting comments later
+- **Fetch MR data via glab CLI** at the start:
+  ```bash
+  # Get MR details (includes diff_refs for line comments)
+  glab mr view <id> -F json
+  
+  # Get MR diff
+  glab mr diff <id>
+  ```
 
 ## Getting Changes in This Branch
 
@@ -66,10 +74,19 @@ Adapt explanation depth based on my familiarity:
 | CSS | Medium | Some context helpful |
 | Backend, Infrastructure | Low | Detailed: what it does, why it's used, why it's good for the job, opportunity to investigate |
 
+## File Review Order
+
+**Use semantic top-down order, not alphabetical:**
+1. Start with entry point / main component
+2. DFS into all related files as encountered (children, hooks, utilities, types)
+3. Integration files (routes, i18n, config) last
+
+This gives context before diving into details.
+
 ## Workflow
 
 1. **Overview**: What does this MR accomplish?
-2. **Walk through changes**: One location at a time
+2. **Walk through changes**: Semantic order, one file at a time
 3. **Collect my feedback**: Questions, concerns, suggestions
 4. **Summarize**: List all points with file:line references
 
@@ -77,8 +94,8 @@ Adapt explanation depth based on my familiarity:
 
 - **EVERY file must be reviewed one by one** - never skip or batch files
 - Open diff in iTerm2 tab for each file before discussing it
-- Also provide a clickable VS Code link to the file: `[filename](file:///path/to/file)`
-- **Always show progress**: "X/Y files, ~N remaining"
+- Also provide a clickable VS Code link: `[filename](vscode://file/path/to/file)` (use `vscode://` not `file://`)
+- **Always show progress**: "X/Y (Z%)" on every file
 - Wait for explicit "next" or approval before moving to the next file
 - Let me ask questions at specific locations
 - Remember all my points with file:line references
@@ -126,13 +143,24 @@ Format should be suitable for pasting into MR comments.
 When I sign off on the summary:
 
 1. **Ask for permission** before posting any comments to GitLab
-2. **Post each comment at the exact file:line location** using `create_merge_request_thread`:
-   - Use `diff_refs` from the MR data fetched at setup
-   - Set `position.position_type` to `"text"`
-   - Set `old_path` and `new_path` to the file path
-   - Set `new_line` or `old_line` based on whether it's an added/modified or deleted line
-3. **Ask for permission** before approving the MR
-4. If approved, use `approve_merge_request` to approve
+2. **Post general comments** using `glab mr note`:
+   ```bash
+   glab mr note <id> -m "Comment text"
+   ```
+3. **Post line-specific comments** using the API:
+   ```bash
+   # Get diff_refs from MR data first
+   glab api projects/:fullpath/merge_requests/<iid>/discussions -X POST \
+     -f body="Comment" \
+     -f "position[position_type]=text" \
+     -f "position[base_sha]=<base_sha>" \
+     -f "position[head_sha]=<head_sha>" \
+     -f "position[start_sha]=<start_sha>" \
+     -f "position[new_path]=path/to/file.ts" \
+     -f "position[new_line]=42"
+   ```
+4. **Ask for permission** before approving the MR
+5. If approved: `glab mr approve <id>`
 
 **Never post comments or approve without explicit sign-off.**
 
