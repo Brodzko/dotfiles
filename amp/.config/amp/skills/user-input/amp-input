@@ -1,0 +1,91 @@
+#!/bin/sh
+# amp-input - Ask user to pick from options in iTerm2 tab
+# Usage: amp-input '<question>' '<options>'
+# Options are newline-separated
+# Example: amp-input "Which branch?" "main\ndevelop\nfeature-x"
+
+set -e
+
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Usage: amp-input '<question>' '<options>'" >&2
+    echo "Options are newline-separated" >&2
+    exit 1
+fi
+
+QUESTION="$1"
+OPTIONS="$2"
+WORKDIR="$(pwd)"
+OUTFILE="/tmp/amp-input-out.$$"
+DONEFILE="/tmp/amp-input-done.$$"
+OPTFILE="/tmp/amp-input-opts.$$"
+CMDFILE="/tmp/amp-input-cmd.$$"
+
+# Cleanup stale files older than 1 hour
+find /tmp -maxdepth 1 -name 'amp-input-*' -mmin +60 -delete 2>/dev/null || true
+
+# Ensure clean state
+rm -f "$OUTFILE" "$DONEFILE" "$OPTFILE" "$CMDFILE"
+
+# Write options to file
+printf '%b' "$OPTIONS" > "$OPTFILE"
+
+# Write command to file - use double quotes and escape properly
+cat > "$CMDFILE" <<SCRIPT
+#!/bin/sh
+# Disable cursor blinking (steady bar)
+printf '\e[6 q'
+gum style \
+    --border="rounded" \
+    --border-foreground="99" \
+    --padding="0 2" \
+    --margin="1" \
+    --foreground="255" \
+    --bold \
+    "$QUESTION"
+echo
+RESULT=\$(cat "$OPTFILE" | gum filter \
+    --no-show-help \
+    --prompt="> " \
+    --prompt.foreground="240" \
+    --indicator=" ›" \
+    --indicator.foreground="99" \
+    --match.foreground="212" \
+    --text.foreground="255" \
+    --placeholder="Type to filter..." \
+    --placeholder.foreground="240" \
+    --height=10)
+if [ -n "\$RESULT" ]; then
+    printf '%s' "\$RESULT" > "$OUTFILE"
+fi
+touch "$DONEFILE"
+SCRIPT
+chmod +x "$CMDFILE"
+
+# Cleanup on exit/interrupt
+cleanup() {
+    rm -f "$OUTFILE" "$DONEFILE" "$OPTFILE" "$CMDFILE"
+}
+trap cleanup EXIT INT TERM
+
+osascript <<EOF
+tell application "iTerm2"
+    activate
+    tell current window
+        create tab with default profile
+        delay 0.5
+        tell current session of current tab
+            write text "cd '$WORKDIR'; clear; '$CMDFILE' || read -p 'Press enter to close'; exit"
+        end tell
+    end tell
+end tell
+EOF
+
+# Wait for command to complete
+while [ ! -f "$DONEFILE" ]; do
+    sleep 0.2
+done
+
+# Output result
+if [ -f "$OUTFILE" ]; then
+    cat "$OUTFILE"
+fi

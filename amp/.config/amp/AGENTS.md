@@ -26,8 +26,45 @@
 - Lint: `pnpm lint`
 -->
 
+## Interactive Input (CRITICAL)
+
+**ALWAYS use `user-input` skill when I need to pick from options** - never ask me to type in chat when options exist.
+
+### When to use (proactively, without being asked):
+- **Any list selection** - MRs, branches, files, issues, Jira tickets, reviewers, etc.
+- **During other skills** - assigning reviewers, checking out branches, picking tasks
+- **Deciding how to proceed** - when there are multiple valid approaches, show options
+- **IDs or URLs** - anything I'd need to look up or copy-paste
+- **Ambiguous requests** - when multiple interpretations exist, let me pick
+
+**Rule: If the answer isn't free-form text, use this skill with options instead of asking me to type.**
+
+### API:
+```sh
+~/.config/amp/skills/user-input/amp-input '<question with context>' '<newline-separated options>'
+```
+
+### Pattern: Fetch → Pick → Continue
+1. **Fetch options** using appropriate tool (glab, git, find, jira, etc.)
+2. **Format as newline-separated string**
+3. **Call amp-input** with question + options
+4. **Use selection** and continue
+
+### Examples:
+```sh
+# Pick a branch
+amp-input "Which branch?" "main\ndevelop\nfeature-x"
+
+# Pick an MR reviewer
+amp-input "Add reviewer to MR #123?" "alice\nbob\ncharlie"
+
+# Choose next action
+amp-input "How should I proceed?" "Refactor first\nAdd tests\nShip as-is"
+```
+
 ## Skills
 
+- **user-input** - Pick from options via fuzzy-search UI in iTerm2
 - **gitlab** - GitLab CLI operations via `glab` (authenticated as martin.brodziansky)
 - **mr-review** - MR review workflow for others' code
 - **interactive-review** - Interactive review of my own code
