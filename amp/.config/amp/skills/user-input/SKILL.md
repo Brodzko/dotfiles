@@ -41,3 +41,13 @@ Use proactively when the user needs to pick from options you can fetch:
 
 - iTerm2 (with AppleScript enabled)
 - `gum` (`brew install gum`)
+
+## Adaptive Learning
+
+When corrected or redirected on how this skill is used:
+
+1. **Detect the correction**: Recognize when the user corrects your behavior, invocation pattern, option formatting, or any other aspect of how this skill operates
+2. **Internalize immediately**: Apply the correction for the rest of the current session
+3. **Propose a permanent change**: Ask: _"Do you want to change this skill's workflow like this: [describe the specific change]?"_
+4. **If confirmed**: Update this SKILL.md file yourself with the new behavior — integrate it naturally into the relevant section (don't just append)
+5. **If declined**: Continue with the correction for this session only

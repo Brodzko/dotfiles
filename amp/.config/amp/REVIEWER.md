@@ -29,6 +29,13 @@ This file captures my code review preferences and evolves over time.
 - OOP patterns (classes, inheritance)
 - Unnecessary type casting
 
+## Comment Style
+
+- No kind prefixes on review comments (e.g., `suggestion:`, `nit:`, `concern:`)
+  — sounds robotic
+- When unsure whether something is a real issue, frame as a question rather than
+  a prescriptive suggestion
+
 ## Naming Conventions
 
 - Props types should be `ComponentNameProps`, not just `ComponentName`
