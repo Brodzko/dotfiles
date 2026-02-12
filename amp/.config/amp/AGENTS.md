@@ -26,6 +26,15 @@
 - Lint: `pnpm lint`
 -->
 
+## Command Output
+
+Minimize noisy output in the UI:
+
+- **Intermediate commands** (output only for me, not you): discard entirely with `> /dev/null` or redirect to temp file
+- **Partially relevant output**: filter to only the relevant parts (e.g., `jq '.title, .author'` for JSON)
+- **Relevant output**: pretty-print for readability (e.g., `jq .` for JSON)
+- **On error (non-zero exit)**: always show the output so I can see what went wrong
+
 ## Interactive Input (CRITICAL)
 
 **ALWAYS use `user-input` skill when I need to pick from options** - never ask me to type in chat when options exist.

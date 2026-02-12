@@ -163,3 +163,8 @@ export VISUAL="$EDITOR"
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
 alias code-maat="java -jar $HOME/code-maat-1.0.4-standalone.jar"
+# bun completions
+[ -s "/Users/martin.brodziansky@rossum.ai/.bun/_bun" ] && source "/Users/martin.brodziansky@rossum.ai/.bun/_bun"
+
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
