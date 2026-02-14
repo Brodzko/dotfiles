@@ -1,0 +1,66 @@
+[
+  { "tool": "bash", "matches": { "command": "*rm -rf /*" }, "action": "reject" },
+  { "tool": "bash", "matches": { "command": "*> /dev/*" }, "action": "reject" },
+  { "tool": "bash", "matches": { "command": "*mkfs*" }, "action": "reject" },
+  { "tool": "bash", "matches": { "command": "*dd if=*" }, "action": "reject" },
+  { "tool": "bash", "matches": { "command": "*chmod 777*" }, "action": "reject" },
+  { "tool": "bash", "matches": { "command": "*shutdown*" }, "action": "reject" },
+  { "tool": "bash", "matches": { "command": "*reboot*" }, "action": "reject" },
+  { "tool": "bash", "matches": { "command": "*poweroff*" }, "action": "reject" },
+  { "tool": "bash", "matches": { "command": "*:(){ :|:& };:*" }, "action": "reject" },
+
+  { "tool": "write", "matches": { "path": "*id_rsa*" }, "action": "reject" },
+  { "tool": "write", "matches": { "path": "*id_ed25519*" }, "action": "reject" },
+  { "tool": "write", "matches": { "path": "*authorized_keys*" }, "action": "reject" },
+  { "tool": "write", "matches": { "path": "*/etc/passwd" }, "action": "reject" },
+  { "tool": "write", "matches": { "path": "*/etc/shadow" }, "action": "reject" },
+  { "tool": "write", "matches": { "path": "*/etc/sudoers" }, "action": "reject" },
+
+  { "tool": "edit", "matches": { "path": "*id_rsa*" }, "action": "reject" },
+  { "tool": "edit", "matches": { "path": "*id_ed25519*" }, "action": "reject" },
+  { "tool": "edit", "matches": { "path": "*authorized_keys*" }, "action": "reject" },
+  { "tool": "edit", "matches": { "path": "*/etc/passwd" }, "action": "reject" },
+  { "tool": "edit", "matches": { "path": "*/etc/shadow" }, "action": "reject" },
+  { "tool": "edit", "matches": { "path": "*/etc/sudoers" }, "action": "reject" },
+
+  { "tool": "read", "matches": { "path": "*id_rsa*" }, "action": "ask" },
+  { "tool": "read", "matches": { "path": "*id_ed25519*" }, "action": "ask" },
+  { "tool": "read", "matches": { "path": "*authorized_keys*" }, "action": "ask" },
+  { "tool": "read", "matches": { "path": "*/etc/shadow" }, "action": "ask" },
+  { "tool": "read", "matches": { "path": "*.env*" }, "action": "ask" },
+
+  { "tool": "write", "matches": { "path": "*.bashrc" }, "action": "ask" },
+  { "tool": "write", "matches": { "path": "*.zshrc" }, "action": "ask" },
+  { "tool": "write", "matches": { "path": "*.profile" }, "action": "ask" },
+  { "tool": "edit", "matches": { "path": "*.bashrc" }, "action": "ask" },
+  { "tool": "edit", "matches": { "path": "*.zshrc" }, "action": "ask" },
+  { "tool": "edit", "matches": { "path": "*.profile" }, "action": "ask" },
+
+  { "tool": "bash", "matches": { "command": "*rm -rf*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*DROP TABLE*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*sudo *" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*npx *" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*curl *" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*wget*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*scp *" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*rsync*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*ssh-keygen*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*security*" }, "action": "ask" },
+
+  { "tool": "bash", "matches": { "command": "*pip install*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*npm install -g*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*pnpm install -g*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*pnpm add -g*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*brew install*" }, "action": "ask" },
+
+  { "tool": "bash", "matches": { "command": "*kill -9*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*launchctl*" }, "action": "ask" },
+
+  { "tool": "bash", "matches": { "command": "*git push --force*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*git push -f*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*git reset --hard*" }, "action": "ask" },
+  { "tool": "bash", "matches": { "command": "*git clean -fd*" }, "action": "ask" },
+
+  { "tool": "write", "matches": { "path": "*.env*" }, "action": "ask" },
+  { "tool": "edit", "matches": { "path": "*.env*" }, "action": "ask" }
+]
