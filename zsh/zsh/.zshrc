@@ -168,3 +168,7 @@ alias code-maat="java -jar $HOME/code-maat-1.0.4-standalone.jar"
 
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+export AWS_PROFILE="rossum-dev"
+export AWS_REGION="eu-central-1"
+export CLAUDE_CODE_USE_BEDROCK="true"
