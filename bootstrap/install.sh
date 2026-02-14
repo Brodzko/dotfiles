@@ -37,6 +37,7 @@ PACKAGES=(
     "karabiner"
     "launchd"
     "nvim"
+    "pi"
     "ssh"
     "starship"
     "tig"

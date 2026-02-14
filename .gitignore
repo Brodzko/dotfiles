@@ -6,3 +6,4 @@
 /karabiner/**/automatic_backups
 .zsh_history
 /zsh/zsh/elis_be.zsh
+/pi/.pi/agent/extensions/node_modules
