@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.52.12",
-  "defaultProvider": "google-gemini-cli",
-  "defaultModel": "gemini-3-pro-preview",
+  "defaultProvider": "amazon-bedrock",
+  "defaultModel": "eu.anthropic.claude-opus-4-6-v1",
   "enabledModels": [
     "amazon-bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
     "amazon-bedrock/eu.anthropic.claude-opus-4-6-v1",
@@ -9,5 +9,6 @@
     "amazon-bedrock/eu.anthropic.claude-sonnet-4-20250514-v1:0",
     "google-gemini-cli/gemini-3-pro-preview"
   ],
-  "hideThinkingBlock": true
+  "hideThinkingBlock": true,
+  "defaultThinkingLevel": "high"
 }

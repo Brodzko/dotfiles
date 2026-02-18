@@ -7,6 +7,7 @@
 # Docker & Kubernetes
 # Git tools
 # VSCode Extensions
+brew "1password-cli"
 brew "bat"
 brew "colima"
 brew "coreutils"

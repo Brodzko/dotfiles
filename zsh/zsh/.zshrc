@@ -172,3 +172,30 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export AWS_PROFILE="rossum-dev"
 export AWS_REGION="eu-central-1"
 export CLAUDE_CODE_USE_BEDROCK="true"
+
+[ -s "/Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh" ] && source /Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh
+
+eval "original_$(declare -f spi)"
+spi() {
+  echo "🔑 Checking AWS SSO session..."
+  if ! timeout 5 aws sts get-caller-identity &>/dev/null; then
+    echo "🔑 AWS SSO session expired, logging in..."
+    aws sso login || { echo "❌ AWS SSO login failed" >&2; return 1; }
+    echo "✅ AWS SSO login successful"
+  else
+    echo "✅ AWS SSO session active"
+  fi
+
+  echo "🔑 Reading OpenAI API key from 1Password (Touch ID)..."
+  local key
+  key="$(op read 'op://Rossum/OpenAI API Key/credential')"
+  if [[ $? -ne 0 || -z "$key" ]]; then
+    echo "❌ Failed to read OpenAI API key from 1Password" >&2
+    return 1
+  fi
+  export OPENAI_API_KEY="$key"
+  echo "✅ OpenAI API key set"
+
+  echo "🚀 Starting spi..."
+  original_spi "$@"
+}
