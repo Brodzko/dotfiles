@@ -19,13 +19,15 @@
 	<key>AiMaxTokens</key>
 	<integer>400000</integer>
 	<key>AiModel</key>
-	<string>gpt-5.1</string>
+	<string>gpt-5.2</string>
 	<key>AiResponseMaxTokens</key>
 	<integer>128000</integer>
 	<key>AitermURL</key>
 	<string>https://api.openai.com/v1/responses</string>
 	<key>AllowClipboardAccess</key>
 	<true/>
+	<key>ClickToSelectCommand</key>
+	<false/>
 	<key>Custom Color Presets</key>
 	<dict>
 		<key>tokyonight</key>
@@ -584,8 +586,12 @@
 	<string>D387B29F-8688-4B94-87D8-E40C568E7AC2</string>
 	<key>HapticFeedbackForEsc</key>
 	<false/>
+	<key>HideScrollbar</key>
+	<true/>
 	<key>HotkeyMigratedFromSingleToMulti</key>
 	<true/>
+	<key>IRMemory</key>
+	<integer>4</integer>
 	<key>NeverWarnAboutShortLivedSessions_D387B29F-8688-4B94-87D8-E40C568E7AC2</key>
 	<true/>
 	<key>NeverWarnAboutShortLivedSessions_D387B29F-8688-4B94-87D8-E40C568E7AC2_selection</key>
@@ -597,6 +603,8 @@
 			<true/>
 			<key>ASCII Ligatures</key>
 			<true/>
+			<key>Allow Paste Bracketing</key>
+			<false/>
 			<key>Ambiguous Double Width</key>
 			<false/>
 			<key>Animate Movement</key>
@@ -760,8 +768,6 @@
 				<key>Red Component</key>
 				<real>0.10196078431372549</real>
 			</dict>
-			<key>Background Image Location</key>
-			<string></string>
 			<key>Badge Color</key>
 			<dict>
 				<key>Alpha Component</key>
@@ -775,6 +781,8 @@
 				<key>Red Component</key>
 				<real>0.92929404973983765</real>
 			</dict>
+			<key>Blend</key>
+			<real>0.15206068840579709</real>
 			<key>Blinking Cursor</key>
 			<false/>
 			<key>Blur</key>
@@ -893,6 +901,19 @@
 			</array>
 			<key>Keyboard Map</key>
 			<dict>
+				<key>0x20-0x20000-0x31</key>
+				<dict>
+					<key>Action</key>
+					<integer>12</integer>
+					<key>Apply Mode</key>
+					<integer>1</integer>
+					<key>Escaping</key>
+					<integer>2</integer>
+					<key>Text</key>
+					<string> </string>
+					<key>Version</key>
+					<integer>2</integer>
+				</dict>
 				<key>0x7f-0x100000</key>
 				<dict>
 					<key>Action</key>
@@ -1035,7 +1056,7 @@
 			<key>Screen</key>
 			<integer>-2</integer>
 			<key>Scrollback Lines</key>
-			<integer>1000</integer>
+			<integer>10000</integer>
 			<key>Selected Text Color</key>
 			<dict>
 				<key>Blue Component</key>
@@ -1068,6 +1089,8 @@
 			<string>xterm-256color</string>
 			<key>Transparency</key>
 			<real>0.24542410714285712</real>
+			<key>Unicode Normalization</key>
+			<integer>1</integer>
 			<key>Unlimited Scrollback</key>
 			<false/>
 			<key>Use Bold Font</key>
@@ -1131,6 +1154,8 @@
 	<integer>0</integer>
 	<key>VisualIndicatorForEsc</key>
 	<false/>
+	<key>findMode_iTerm</key>
+	<integer>0</integer>
 	<key>kCPKSelectionViewPreferredModeKey</key>
 	<integer>0</integer>
 	<key>kCPKSelectionViewShowHSBTextFieldsKey</key>

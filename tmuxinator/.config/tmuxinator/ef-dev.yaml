@@ -1,3 +1,5 @@
+# DEPRECATED: Use `wt` command instead. See wt.yaml and zsh/zsh/wt.zsh.
+# Kept as fallback — will be removed once wt workflow is validated.
 <%
   subdir = ENV["DEV_PATH"] || '.'
   root_path = File.expand_path(File.join(Dir.home, "rossum", subdir))

@@ -23,15 +23,13 @@ function update_tab_title() {
   fi
 
   # Compose title
-  local title=""
-  # [[ -n "$cmd" ]] && title+="$cmd "
-  title+="$dir"
-  [[ -n "$branch" ]] && title+=" $branch"
+  local title="$dir $branch"
 
   # Set tab title
-  echo -ne "\033]1;$title\007"
+  print -Pn "\e]1;${title}\a"
 }
 
+# DEPRECATED: Use `wt` instead. Will be removed once wt workflow is validated.
 efdev() {
   DEV_PATH="$1" tmuxinator start ef-dev
 }
@@ -51,6 +49,9 @@ fi
 # Source/Load zinit
 source "${ZINIT_HOME}/zinit.zsh"
 
+# Force emacs keybindings (prevent vi mode from EDITOR=nvim)
+bindkey -e
+
 # History
 HISTSIZE=5000
 SAVEHIST=$HISTSIZE
@@ -65,9 +66,7 @@ setopt hist_ignore_dups
 setopt hist_find_no_dups
 
 # Add in zsh plugins
-zinit light zsh-users/zsh-syntax-highlighting
 zinit light zsh-users/zsh-completions
-zinit light zsh-users/zsh-autosuggestions
 zinit light Aloxaf/fzf-tab
 zinit light MichaelAquilina/zsh-you-should-use
 
@@ -94,9 +93,6 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
-
-eval "$(fzf --zsh)"
-eval "$(starship init zsh)"
 
 # fnm - Fast Node Manager
 eval "$(fnm env)"
@@ -139,10 +135,10 @@ source "$ZDOTDIR/git/git.zsh"
 source "$ZDOTDIR/gitlab/gitlab.zsh"
 
 source "$ZDOTDIR/jira/client.zsh"
+source "$ZDOTDIR/wt.zsh"
 [[ -f "$ZDOTDIR/elis_be.zsh" ]] && source "$ZDOTDIR/elis_be.zsh"
 
-# Syntax higlighting, needs to be at the end of file
-source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# Syntax highlighting — loaded via zinit above, do NOT double-source from brew
 
 # Added by Windsurf
 export PATH="$HOME/.codeium/windsurf/bin:$PATH"
@@ -171,31 +167,29 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 export AWS_PROFILE="rossum-dev"
 export AWS_REGION="eu-central-1"
-export CLAUDE_CODE_USE_BEDROCK="true"
+# export CLAUDE_CODE_USE_BEDROCK="true"
 
 [ -s "/Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh" ] && source /Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh
 
-eval "original_$(declare -f spi)"
-spi() {
-  echo "🔑 Checking AWS SSO session..."
-  if ! timeout 5 aws sts get-caller-identity &>/dev/null; then
-    echo "🔑 AWS SSO session expired, logging in..."
-    aws sso login || { echo "❌ AWS SSO login failed" >&2; return 1; }
-    echo "✅ AWS SSO login successful"
-  else
-    echo "✅ AWS SSO session active"
-  fi
+if ! typeset -f original_spi > /dev/null 2>&1; then
+  eval "original_$(declare -f spi)"
+  spi() {
 
-  echo "🔑 Reading OpenAI API key from 1Password (Touch ID)..."
-  local key
-  key="$(op read 'op://Rossum/OpenAI API Key/credential')"
-  if [[ $? -ne 0 || -z "$key" ]]; then
-    echo "❌ Failed to read OpenAI API key from 1Password" >&2
-    return 1
-  fi
-  export OPENAI_API_KEY="$key"
-  echo "✅ OpenAI API key set"
 
-  echo "🚀 Starting spi..."
-  original_spi "$@"
-}
+    echo "🚀 Starting spi..."
+    original_spi "$@"
+  }
+fi
+
+eval "$(fzf --zsh)"
+eval "$(starship init zsh)"
+
+# Initialize completion
+autoload -U compinit
+compinit
+
+zinit cdreplay -q
+
+zinit light zsh-users/zsh-autosuggestions
+
+zinit light zsh-users/zsh-syntax-highlighting
