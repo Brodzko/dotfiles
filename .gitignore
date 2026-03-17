@@ -1,5 +1,6 @@
 .DS_Store
 .zcompdump*
+.brodzko
 
 /zsh/zsh/.zsh_secrets.zsh
 /zsh/zsh/.zsh_sessions
