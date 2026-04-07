@@ -168,13 +168,18 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export AWS_PROFILE="rossum-dev"
 export AWS_REGION="eu-central-1"
 # export CLAUDE_CODE_USE_BEDROCK="true"
+_jira_token="$(security find-generic-password -s 'jira-api-token' -w 2>/dev/null)"
+if [[ -z "$_jira_token" ]]; then
+  _jira_token="$(op item get 'JIRA CLI TOKEN' --fields credential --reveal 2>/dev/null)"
+  security add-generic-password -s 'jira-api-token' -a "$USER" -w "$_jira_token" 2>/dev/null
+fi
+export JIRA_API_TOKEN="$_jira_token"
 
 [ -s "/Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh" ] && source /Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh
 
 if ! typeset -f original_spi > /dev/null 2>&1; then
   eval "original_$(declare -f spi)"
-  spi() {
-
+  spi() { 
 
     echo "🚀 Starting spi..."
     original_spi "$@"
@@ -183,6 +188,8 @@ fi
 
 eval "$(fzf --zsh)"
 eval "$(starship init zsh)"
+
+export PATH="$HOME/agent-config/bin:$PATH"
 
 # Initialize completion
 autoload -U compinit
