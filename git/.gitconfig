@@ -1,8 +1,11 @@
 [include]
 path = ./themes.gitconfig
 [user]
-name = Martin Brodziansky
-email = martin.brodziansky@rossum.ai
+name = Brodzko
+email = martin.brodziansky@gmail.com
+
+[includeIf "gitdir:~/rossum/"]
+path = ~/.gitconfig-rossum
 [core]
 pager = env LESS='' delta
 editor = nvim
