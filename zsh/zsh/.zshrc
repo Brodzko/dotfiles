@@ -175,6 +175,13 @@ if [[ -z "$_jira_token" ]]; then
 fi
 export JIRA_API_TOKEN="$_jira_token"
 
+_jina_key="$(security find-generic-password -s 'jina-api-key' -w 2>/dev/null)"
+if [[ -z "$_jina_key" ]]; then
+  _jina_key="$(op item get 'JINA API KEY' --fields credential --reveal 2>/dev/null)"
+  security add-generic-password -s 'jina-api-key' -a "$USER" -w "$_jina_key" 2>/dev/null
+fi
+export JINA_API_KEY="$_jina_key"
+
 [ -s "/Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh" ] && source /Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh
 
 if ! typeset -f original_spi > /dev/null 2>&1; then

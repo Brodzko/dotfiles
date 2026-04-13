@@ -1186,8 +1186,6 @@
 	<integer>0</integer>
 	<key>ToolbeltTools</key>
 	<array>
-		<string>Jobs</string>
-		<string>Notes</string>
 		<string>Captured Output</string>
 	</array>
 	<key>VisualIndicatorForEsc</key>
