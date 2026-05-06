@@ -19,17 +19,12 @@ To manage your iTerm2 settings with dotfiles:
    - Git will track your iTerm2 configuration
 
 3. **On a new machine**:
-   - Run `stow iterm2` (creates symlink to preferences folder)
-   - Follow step 1 above to point iTerm2 to the folder
+   - Follow step 1 above to point iTerm2 to `~/.dotfiles/iterm2/preferences`
    - Your settings will be loaded automatically
-
-## Current Status
-
-Run the setup instructions above to start tracking your iTerm2 configuration.
 
 ## Note on Stow
 
-This package doesn't use Stow in the traditional way. Instead:
+This package doesn't use Stow. Instead:
 - The `preferences/` folder stays in your dotfiles
 - You manually configure iTerm2 to load/save from this location
 - iTerm2 handles the syncing itself

@@ -134,7 +134,6 @@ export FZF_ALT_C_COMMAND='fd --type d --follow --hidden --exclude node_modules -
 source "$ZDOTDIR/git/git.zsh"
 source "$ZDOTDIR/gitlab/gitlab.zsh"
 
-source "$ZDOTDIR/jira/client.zsh"
 source "$ZDOTDIR/wt.zsh"
 [[ -f "$ZDOTDIR/elis_be.zsh" ]] && source "$ZDOTDIR/elis_be.zsh"
 
@@ -154,13 +153,13 @@ dotfiles() {
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
 
-[ -f "/Users/martin.brodziansky@rossum.ai/.ghcup/env" ] && . "/Users/martin.brodziansky@rossum.ai/.ghcup/env" # ghcup-env
+[ -f "$HOME/.ghcup/env" ] && . "$HOME/.ghcup/env" # ghcup-env
 
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
 alias code-maat="java -jar $HOME/code-maat-1.0.4-standalone.jar"
 # bun completions
-[ -s "/Users/martin.brodziansky@rossum.ai/.bun/_bun" ] && source "/Users/martin.brodziansky@rossum.ai/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
@@ -168,26 +167,30 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export AWS_PROFILE="rossum-dev"
 export AWS_REGION="eu-central-1"
 # export CLAUDE_CODE_USE_BEDROCK="true"
-_jira_token="$(security find-generic-password -s 'jira-api-token' -w 2>/dev/null)"
-if [[ -z "$_jira_token" ]]; then
-  _jira_token="$(op item get 'JIRA CLI TOKEN' --fields credential --reveal 2>/dev/null)"
-  security add-generic-password -s 'jira-api-token' -a "$USER" -w "$_jira_token" 2>/dev/null
+if [[ -z "$JIRA_API_TOKEN" ]]; then
+  _jira_token="$(security find-generic-password -s 'jira-api-token' -w 2>/dev/null)"
+  if [[ -z "$_jira_token" ]]; then
+    _jira_token="$(op item get 'JIRA CLI TOKEN' --fields credential --reveal 2>/dev/null)"
+    [[ -n "$_jira_token" ]] && security add-generic-password -s 'jira-api-token' -a "$USER" -w "$_jira_token" 2>/dev/null
+  fi
+  export JIRA_API_TOKEN="$_jira_token"
 fi
-export JIRA_API_TOKEN="$_jira_token"
+source "$ZDOTDIR/jira/client.zsh"
 
-_jina_key="$(security find-generic-password -s 'jina-api-key' -w 2>/dev/null)"
-if [[ -z "$_jina_key" ]]; then
-  _jina_key="$(op item get 'JINA API KEY' --fields credential --reveal 2>/dev/null)"
-  security add-generic-password -s 'jina-api-key' -a "$USER" -w "$_jina_key" 2>/dev/null
+if [[ -z "$JINA_API_KEY" ]]; then
+  _jina_key="$(security find-generic-password -s 'jina-api-key' -w 2>/dev/null)"
+  if [[ -z "$_jina_key" ]]; then
+    _jina_key="$(op item get 'JINA API KEY' --fields credential --reveal 2>/dev/null)"
+    [[ -n "$_jina_key" ]] && security add-generic-password -s 'jina-api-key' -a "$USER" -w "$_jina_key" 2>/dev/null
+  fi
+  export JINA_API_KEY="$_jina_key"
 fi
-export JINA_API_KEY="$_jina_key"
 
-[ -s "/Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh" ] && source /Users/martin.brodziansky@rossum.ai/.pi/agent/spi/spi.sh
+[ -s "$HOME/.pi/agent/spi/spi.sh" ] && source "$HOME/.pi/agent/spi/spi.sh"
 
-if ! typeset -f original_spi > /dev/null 2>&1; then
+if typeset -f spi > /dev/null 2>&1 && ! typeset -f original_spi > /dev/null 2>&1; then
   eval "original_$(declare -f spi)"
-  spi() { 
-
+  spi() {
     echo "🚀 Starting spi..."
     original_spi "$@"
   }

@@ -49,16 +49,17 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 ### Terminal
 - **tmux** - Terminal multiplexer configuration
 - **tmuxinator** - tmux session management
+- **htop** - Process monitor configuration
 
 ### Development Tools
 - **git** - Git configuration with delta for better diffs
-- **tig** - Text-mode interface for Git
 - **nvim** - Neovim configuration
 - **bat** - Cat clone with syntax highlighting
 
 ### System
 - **karabiner** - Keyboard customization
 - **ssh** - SSH configuration template (copy from `.ssh/config.example`)
+- **amp** - Amp agent configuration
 
 ### Package Management
 - **Brewfile** - All Homebrew packages (formulas and casks)
@@ -69,16 +70,19 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 .dotfiles/
 ├── bootstrap/          # Installation and setup scripts
 │   ├── install.sh     # Main installation script
-│   ├── macos.sh       # macOS system preferences
-│   └── Brewfile       # Homebrew packages
+│   └── macos.sh       # macOS system preferences
+├── Brewfile           # Homebrew packages
+├── amp/               # Amp agent configuration
 ├── bat/               # bat configuration
 ├── git/               # Git config and themes
-├── iterm2/            # iTerm2 Dynamic Profiles (optional)
+├── htop/              # htop configuration
+├── iterm2/            # iTerm2 preferences (manual setup)
 ├── karabiner/         # Karabiner keyboard customization
+├── launchd/           # LaunchAgent plist files
 ├── nvim/              # Neovim configuration
+├── raycast/           # Raycast export
 ├── ssh/               # SSH config template
 ├── starship/          # Starship prompt config
-├── tig/               # tig configuration
 ├── tmux/              # tmux configuration
 ├── tmuxinator/        # tmux session layouts
 └── zsh/               # zsh configuration
@@ -178,7 +182,6 @@ Key tools that must be installed (via Brewfile):
 - **starship** - Shell prompt
 - **tmux** - Terminal multiplexer
 - **tmuxinator** - tmux session manager
-- **tig** - Git TUI
 - **neovim** - Text editor
 
 ## Customization

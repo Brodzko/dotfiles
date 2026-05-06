@@ -32,15 +32,15 @@ fi
 
 # Stow all packages
 PACKAGES=(
+    "amp"
     "bat"
     "git"
+    "htop"
     "karabiner"
     "launchd"
     "nvim"
-    "pi"
     "ssh"
     "starship"
-    "tig"
     "tmux"
     "tmuxinator"
     "zsh"
@@ -48,7 +48,7 @@ PACKAGES=(
 
 for package in "${PACKAGES[@]}"; do
     echo -e "  Stowing ${GREEN}${package}${NC}..."
-    stow -R "$package" -t "$HOME"
+    stow --ignore='\\.DS_Store' -R "$package" -t "$HOME"
 done
 
 echo -e "\n${YELLOW}Setting up zsh...${NC}"
@@ -74,7 +74,7 @@ fi
 echo -e "\n${YELLOW}Setting up secrets...${NC}"
 if [ ! -f "$HOME/zsh/.zsh_secrets.zsh" ]; then
     echo -e "  ${YELLOW}Note: Copying $HOME/zsh/.zsh_secrets.example.zsh to $HOME/zsh/.zsh_secrets.zsh. Add your secrets here${NC}"
-    cp ./zsh/zsh/.zsh_secrets.example.zsh ~/zsh/.zsh_secrets.zsh
+    cp "$DOTFILES_DIR/zsh/zsh/.zsh_secrets.example.zsh" "$HOME/zsh/.zsh_secrets.zsh"
 fi
 
 echo -e "\n${YELLOW}Setting up LaunchAgents...${NC}"
