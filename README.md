@@ -48,7 +48,6 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 
 ### Terminal
 - **tmux** - Terminal multiplexer configuration
-- **tmuxinator** - tmux session management
 - **htop** - Process monitor configuration
 
 ### Development Tools
@@ -59,7 +58,6 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 ### System
 - **karabiner** - Keyboard customization
 - **ssh** - SSH configuration template (copy from `.ssh/config.example`)
-- **amp** - Amp agent configuration
 
 ### Package Management
 - **Brewfile** - All Homebrew packages (formulas and casks)
@@ -72,7 +70,6 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 │   ├── install.sh     # Main installation script
 │   └── macos.sh       # macOS system preferences
 ├── Brewfile           # Homebrew packages
-├── amp/               # Amp agent configuration
 ├── bat/               # bat configuration
 ├── git/               # Git config and themes
 ├── htop/              # htop configuration
@@ -84,7 +81,6 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 ├── ssh/               # SSH config template
 ├── starship/          # Starship prompt config
 ├── tmux/              # tmux configuration
-├── tmuxinator/        # tmux session layouts
 └── zsh/               # zsh configuration
     └── zsh/           # Actual zsh configs (ZDOTDIR)
         ├── git/       # Git-related functions
@@ -103,6 +99,13 @@ Some configurations require manual setup after installation:
    cd ~/.dotfiles
    stow zsh git tmux nvim  # etc.
    ```
+4. **AI agent config** (pi / claude): managed in a separate repo, not by these dotfiles. Clone it and run its sync script to symlink config into `~/.pi/agent` and `~/.claude`:
+   ```bash
+   git clone git@github.com:Brodzko/agent-config.git ~/agent-config
+   ~/agent-config/scripts/sync.sh
+   ```
+   Also add `export PATH="$HOME/agent-config/bin:$PATH"` (already in `.zshrc`).
+5. **Work/rossum config**: `~/zsh/zsh/work.zsh` is gitignored and intentionally not provisioned. Personal machines load no rossum config; create it manually on a work machine if needed.
 
 ## How It Works
 
@@ -135,7 +138,6 @@ Note: zsh configuration uses `ZDOTDIR` to keep config files in `~/zsh/` instead 
 
 ### Terminal Multiplexing
 - **tmux**: Configured for development workflows
-- **tmuxinator**: Pre-configured layouts for different projects
 
 ## Updating
 
@@ -181,7 +183,6 @@ Key tools that must be installed (via Brewfile):
 - **delta** - Git diff viewer
 - **starship** - Shell prompt
 - **tmux** - Terminal multiplexer
-- **tmuxinator** - tmux session manager
 - **neovim** - Text editor
 
 ## Customization

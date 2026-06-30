@@ -29,11 +29,6 @@ function update_tab_title() {
   print -Pn "\e]1;${title}\a"
 }
 
-# DEPRECATED: Use `wt` instead. Will be removed once wt workflow is validated.
-efdev() {
-  DEV_PATH="$1" tmuxinator start ef-dev
-}
-
 # Call before every prompt
 preexec_functions+=(update_tab_title)
 
@@ -132,15 +127,11 @@ alias q="source '$HOME/zsh/.zshrc'"
 export FZF_ALT_C_COMMAND='fd --type d --follow --hidden --exclude node_modules --exclude .git --exclude .Trash --exclude .cache'
 
 source "$ZDOTDIR/git/git.zsh"
-source "$ZDOTDIR/gitlab/gitlab.zsh"
 
-source "$ZDOTDIR/wt.zsh"
-[[ -f "$ZDOTDIR/elis_be.zsh" ]] && source "$ZDOTDIR/elis_be.zsh"
+# Work/rossum-specific config (gitignored, not present on personal machines)
+[[ -f "$ZDOTDIR/work.zsh" ]] && source "$ZDOTDIR/work.zsh"
 
 # Syntax highlighting — loaded via zinit above, do NOT double-source from brew
-
-# Added by Windsurf
-export PATH="$HOME/.codeium/windsurf/bin:$PATH"
 
 export DOCKER_HOST="unix://$HOME/.colima/docker.sock"
 
@@ -163,19 +154,6 @@ alias code-maat="java -jar $HOME/code-maat-1.0.4-standalone.jar"
 
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
-
-export AWS_PROFILE="rossum-dev"
-export AWS_REGION="eu-central-1"
-# export CLAUDE_CODE_USE_BEDROCK="true"
-if [[ -z "$JIRA_API_TOKEN" ]]; then
-  _jira_token="$(security find-generic-password -s 'jira-api-token' -w 2>/dev/null)"
-  if [[ -z "$_jira_token" ]]; then
-    _jira_token="$(op item get 'JIRA CLI TOKEN' --fields credential --reveal 2>/dev/null)"
-    [[ -n "$_jira_token" ]] && security add-generic-password -s 'jira-api-token' -a "$USER" -w "$_jira_token" 2>/dev/null
-  fi
-  export JIRA_API_TOKEN="$_jira_token"
-fi
-source "$ZDOTDIR/jira/client.zsh"
 
 if [[ -z "$JINA_API_KEY" ]]; then
   _jina_key="$(security find-generic-password -s 'jina-api-key' -w 2>/dev/null)"

@@ -32,7 +32,6 @@ fi
 
 # Stow all packages
 PACKAGES=(
-    "amp"
     "bat"
     "git"
     "htop"
@@ -42,7 +41,6 @@ PACKAGES=(
     "ssh"
     "starship"
     "tmux"
-    "tmuxinator"
     "zsh"
 )
 
