@@ -166,6 +166,13 @@ fi
 if sudo -n true 2>/dev/null; then
     US_LAYOUT='<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>'
 
+    # Flush cfprefsd BEFORE writing, not after. `defaults write <path>` edits the
+    # file bytes directly and synchronously, so the daemon's copy is stale the
+    # moment we write. Killing it afterwards is a coin flip: on exit it can
+    # serialize its stale cache back over the file and silently undo everything.
+    # Killing first means the daemon re-reads from disk on next access.
+    sudo killall cfprefsd 2>/dev/null || true
+
     # Errors are deliberately NOT redirected to /dev/null here. Silencing them is
     # why "I ran it with sudo and the login screen is still wrong" was impossible
     # to diagnose: the write can fail, or appear to succeed and be discarded.
@@ -177,15 +184,19 @@ if sudo -n true 2>/dev/null; then
         "KeyboardLayout ID" -int 0 \
         "KeyboardLayout Name" -string "U.S."
 
-    # cfprefsd caches this file and can rewrite it from memory, undoing the
-    # writes above. Flush it so what is on disk is what was just written.
-    sudo killall cfprefsd 2>/dev/null || true
+    # The setup assistant leaves the onboarding layout in here, and it is a
+    # candidate list the login window can fall back to. Pin it to U.S. as well
+    # so there is nothing else on the machine for the login screen to pick.
+    sudo defaults write "$HITOOLBOX_SYSTEM" AppleInputSourceHistory -array "$US_LAYOUT"
 
-    # Read the file back rather than trusting exit codes.
-    system_layouts="$(sudo plutil -p "${HITOOLBOX_SYSTEM}.plist" 2>/dev/null |
-        awk '/"AppleEnabledInputSources"/ { f = 1 }
-             f && /KeyboardLayout Name/ { sub(/.*=> "/, ""); sub(/"$/, ""); print }' |
-        sort -u | paste -sd, -)"
+    # Read the file back rather than trusting exit codes. -extract is scoped to
+    # the one key; a `plutil -p | awk` scan is not, and previously reported
+    # "Slovak,U.S." for a correct file because AppleInputSourceHistory sorts
+    # immediately after AppleEnabledInputSources and bled into the match.
+    system_layouts="$(sudo plutil -extract AppleEnabledInputSources json -o - \
+        "${HITOOLBOX_SYSTEM}.plist" 2>/dev/null |
+        grep -o '"KeyboardLayout Name":"[^"]*"' |
+        sed 's/.*:"//; s/"$//' | sort -u | paste -sd, -)"
 
     if [ "$system_layouts" = "U.S." ]; then
         echo -e "  ${GREEN}✓${NC} login window keyboard layout (U.S. only)"
@@ -194,18 +205,65 @@ if sudo -n true 2>/dev/null; then
         SKIPPED+=("login window keyboard layout - file still reads: ${system_layouts:-<empty>}")
     fi
 
-    # With FileVault on, the password screen at boot runs before macOS and reads
-    # its own copy of the above from the Preboot volume. Without this resync the
-    # login window is fixed and the boot screen is still wrong.
-    if fdesetup status 2>/dev/null | grep -q 'FileVault is On'; then
-        echo -e "  ${YELLOW}FileVault is on - syncing Preboot volume...${NC}"
-        if sudo diskutil apfs updatePreboot /; then
-            echo -e "  ${GREEN}✓${NC} pre-boot keyboard layout synced"
-        else
-            SKIPPED+=("pre-boot keyboard layout (diskutil apfs updatePreboot failed)")
+    # The boot screen is a different thing from the login window, and it does NOT
+    # read the plist above. `diskutil apfs updatePreboot` snapshots each user's
+    # AppleEnabledInputSources into the Preboot volume's var/db/AllUsersInfo.plist
+    # (under :<username>:InputSources, as embedded plist XML), and the FileVault
+    # password screen takes its layouts from there.
+    #
+    # So the boot screen is only as correct as what was ON DISK in the *user*
+    # plist at the moment updatePreboot ran - and user-domain `defaults write`
+    # goes through cfprefsd, which flushes lazily. Snapshotting before that flush
+    # copies the setup assistant's Slovak-first list, which is how the boot screen
+    # survives a reboot still Slovak even though every write above succeeded.
+    # The cfprefsd kill above doubles as the flush: on SIGTERM it writes pending
+    # user-domain changes out before exiting.
+    #
+    # Run this regardless of FileVault. The snapshot exists either way, so
+    # refreshing it is harmless, and gating it on FileVault made the entire path
+    # untestable on a machine that has FileVault off.
+    # Globbed, not `ls`: an unmatched glob stays literal, which -f rejects.
+    preboot_aui=""
+    for candidate in /System/Volumes/Preboot/*/var/db/AllUsersInfo.plist; do
+        if [ -f "$candidate" ]; then
+            preboot_aui="$candidate"
+            break
         fi
+    done
+
+    # First keyboard layout the boot screen would offer this user.
+    preboot_layout() {
+        /usr/libexec/PlistBuddy -c "Print :$(id -un):InputSources" "$preboot_aui" 2>/dev/null |
+            sed -n 's/.*<string>\(.*\)<\/string>.*/\1/p' |
+            grep -v '^Keyboard Layout$' | head -1
+    }
+
+    if [ -z "$preboot_aui" ]; then
+        SKIPPED+=("pre-boot keyboard layout (no Preboot snapshot on this machine)")
     else
-        echo -e "  ${GREEN}✓${NC} FileVault off - no Preboot volume to sync"
+        boot_layout=""
+        # Two attempts: if the snapshot came out wrong the user plist had not
+        # reached disk yet, so flush again and re-snapshot before giving up.
+        for attempt in 1 2; do
+            if ! preboot_out="$(sudo diskutil apfs updatePreboot / 2>&1)"; then
+                echo "$preboot_out" | tail -5
+                SKIPPED+=("pre-boot keyboard layout (diskutil apfs updatePreboot failed)")
+                break
+            fi
+            boot_layout="$(preboot_layout)"
+            [ "$boot_layout" = "U.S." ] && break
+            [ "$attempt" = 2 ] && break
+            sudo killall cfprefsd 2>/dev/null || true
+            killall cfprefsd 2>/dev/null || true
+            sleep 2
+        done
+
+        if [ "$boot_layout" = "U.S." ]; then
+            echo -e "  ${GREEN}✓${NC} boot screen keyboard layout (U.S. first)"
+        elif [ -n "$boot_layout" ]; then
+            echo -e "  ${RED}✗${NC} boot screen keyboard layout is: $boot_layout"
+            SKIPPED+=("boot screen keyboard layout - Preboot snapshot reads: $boot_layout")
+        fi
     fi
 else
     SKIPPED+=("login window + pre-boot keyboard layout (no sudo)")

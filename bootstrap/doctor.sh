@@ -187,11 +187,18 @@ section "Keyboard layout"
 
 # Two plists: the user one covers the running session, the root-owned system one
 # is what the login window - and therefore every session after a restart - uses.
-first_source() {
-    plutil -p "$1" 2>/dev/null |
-        awk '/"AppleEnabledInputSources"/ { f = 1 }
-             f && /KeyboardLayout Name/ { sub(/.*=> "/, ""); sub(/"$/, ""); print; exit }'
+# Keyboard layout names from AppleEnabledInputSources, in plist order.
+#
+# -extract is scoped to the one key. Scanning `plutil -p` output with a flag
+# instead reported Slovak for correct files: AppleInputSourceHistory sorts
+# immediately after AppleEnabledInputSources, so the setup assistant's leftover
+# layout landed inside the match.
+enabled_layouts() {
+    plutil -extract AppleEnabledInputSources json -o - "$1" 2>/dev/null |
+        grep -o '"KeyboardLayout Name":"[^"]*"' | sed 's/.*:"//; s/"$//'
 }
+
+first_source() { enabled_layouts "$1" | head -1; }
 
 want "user first input source" "$(first_source "$HOME/Library/Preferences/com.apple.HIToolbox.plist")" "U.S."
 want "login window first input source" "$(first_source /Library/Preferences/com.apple.HIToolbox.plist)" "U.S."
@@ -204,10 +211,7 @@ want "current layout" "$(read_default com.apple.HIToolbox AppleCurrentKeyboardLa
 # ABC is tolerated - it is US-shaped and older runs of macos.sh installed it -
 # so this reports only genuinely wrong layouts rather than nagging about a
 # harmless leftover.
-login_layouts="$(plutil -p /Library/Preferences/com.apple.HIToolbox.plist 2>/dev/null |
-    awk '/"AppleEnabledInputSources"/ { f = 1 }
-         f && /KeyboardLayout Name/ { sub(/.*=> "/, ""); sub(/"$/, ""); print }' |
-    sort -u)"
+login_layouts="$(enabled_layouts /Library/Preferences/com.apple.HIToolbox.plist | sort -u)"
 unwanted="$(printf '%s\n' "$login_layouts" | grep -vx 'U\.S\.' | grep -vx 'ABC' |
     grep -v '^$' | paste -sd, -)"
 if [ -z "$unwanted" ]; then
@@ -215,6 +219,32 @@ if [ -z "$unwanted" ]; then
 else
     bad "login window layouts" "extra: $unwanted" \
         "U.S. only - fix by rerunning bootstrap/macos.sh (needs sudo)"
+fi
+
+# The boot screen (FileVault password prompt) reads neither plist above. It uses
+# the Preboot volume's copy of this user's enabled sources, refreshed only by
+# `diskutil apfs updatePreboot`. A stale snapshot is exactly how the boot screen
+# stays Slovak while both plists look correct, and nothing here used to notice.
+# Globbed, not `ls`: an unmatched glob stays literal, which -f rejects.
+preboot_aui=""
+for candidate in /System/Volumes/Preboot/*/var/db/AllUsersInfo.plist; do
+    if [ -f "$candidate" ]; then
+        preboot_aui="$candidate"
+        break
+    fi
+done
+if [ -z "$preboot_aui" ]; then
+    ok "boot screen layout" "no Preboot snapshot on this machine"
+else
+    boot_layout="$(/usr/libexec/PlistBuddy -c "Print :$(id -un):InputSources" "$preboot_aui" 2>/dev/null |
+        sed -n 's/.*<string>\(.*\)<\/string>.*/\1/p' |
+        grep -v '^Keyboard Layout$' | head -1)"
+    if [ "$boot_layout" = "U.S." ]; then
+        ok "boot screen layout" "U.S. first"
+    else
+        bad "boot screen layout" "${boot_layout:-<unreadable>}" \
+            "U.S. first - fix by rerunning bootstrap/macos.sh (needs sudo)"
+    fi
 fi
 
 # Per-app input source memory. On, macOS restores a layout per application and
