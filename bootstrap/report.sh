@@ -58,6 +58,15 @@ cap "FileVault" fdesetup status
 # Keyboard                                                                    #
 ###############################################################################
 
+# MDM configuration profiles land in Managed Preferences and OUTRANK every
+# `defaults write` on the machine. If Jamf pushes an input source payload, no
+# amount of fixing the plists below can win and the fix has to come from MDM.
+# This is a managed corporate Mac, so rule it out before believing anything else.
+cap "MDM managed HIToolbox override (anything here beats defaults write)" \
+    ls -la "/Library/Managed Preferences/com.apple.HIToolbox.plist"
+cap "MDM keyboard payloads in configuration profiles" \
+    sudo profiles show -type configuration
+
 cap "login window plist (root-owned, drives the login screen)" \
     sudo plutil -p /Library/Preferences/com.apple.HIToolbox.plist
 
