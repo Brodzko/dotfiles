@@ -91,6 +91,11 @@ defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 defaults write NSGlobalDomain com.apple.swipescrolldirection -bool FALSE
 defaults write com.apple.AppleMultitouchTrackpad "FirstClickThreshold" -int "1"
 
+# Tracking speed. These are the two floats the System Settings sliders write;
+# a fresh machine starts at 0.6875 (trackpad) which feels sluggish.
+d NSGlobalDomain com.apple.trackpad.scaling -float 1.5
+d NSGlobalDomain com.apple.mouse.scaling -float 2
+
 # Increase sound quality for Bluetooth headphones/headsets
 defaults write com.apple.BluetoothAudioAgent "Apple Bitpool Min (editable)" -int 40
 
@@ -106,6 +111,53 @@ defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
 # fn keys does nothing
 defaults write com.apple.HIToolbox AppleFnUsageType -int "0"
+
+###############################################################################
+# Input sources                                                               #
+###############################################################################
+
+echo -e "\n${YELLOW}Configuring input sources...${NC}"
+
+# U.S. first, Slovak second. The order is the point: macOS activates the first
+# enabled layout when a session starts, so a machine whose setup assistant
+# picked Slovak keeps logging in with a Slovak layout no matter what the menu
+# bar showed last. Both lists have to agree - AppleEnabledInputSources is what
+# is available, AppleSelectedInputSources is what is active.
+d com.apple.HIToolbox AppleEnabledInputSources -array \
+    '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>' \
+    '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>-11013</integer><key>KeyboardLayout Name</key><string>Slovak</string></dict>' \
+    '<dict><key>Bundle ID</key><string>com.apple.CharacterPaletteIM</string><key>InputSourceKind</key><string>Non Keyboard Input Method</string></dict>' \
+    '<dict><key>Bundle ID</key><string>com.apple.PressAndHold</string><key>InputSourceKind</key><string>Non Keyboard Input Method</string></dict>'
+
+d com.apple.HIToolbox AppleSelectedInputSources -array \
+    '<dict><key>Bundle ID</key><string>com.apple.PressAndHold</string><key>InputSourceKind</key><string>Non Keyboard Input Method</string></dict>' \
+    '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>'
+
+d com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID -string "com.apple.keylayout.US"
+
+###############################################################################
+# Spotlight (Raycast owns Cmd+Space)                                          #
+###############################################################################
+
+echo -e "\n${YELLOW}Freeing up Cmd+Space for Raycast...${NC}"
+
+# Hotkey 64 is "Show Spotlight search". Raycast binds Cmd+Space as well, so
+# leaving it enabled opens both windows on every press. Hotkey 65 (Cmd+Opt+Space,
+# the Finder search window) is left alone.
+#
+# Only :enabled is flipped - System Settings keeps the key combination in
+# :value:parameters, and wiping the whole dict would leave the shortcut
+# unassigned if it is ever re-enabled. cfprefsd caches this plist, hence the
+# reads around the edit.
+defaults read com.apple.symbolichotkeys &>/dev/null
+HOTKEYS_PLIST="$HOME/Library/Preferences/com.apple.symbolichotkeys.plist"
+if [ -f "$HOTKEYS_PLIST" ]; then
+    plist_set "$HOTKEYS_PLIST" ":AppleSymbolicHotKeys:64:enabled" bool false
+    defaults read com.apple.symbolichotkeys &>/dev/null
+    echo -e "  ${YELLOW}Takes effect after a logout - WindowServer holds the old binding.${NC}"
+else
+    SKIPPED+=("Spotlight hotkey (no symbolichotkeys plist yet - uncheck it in Settings → Keyboard → Keyboard Shortcuts → Spotlight)")
+fi
 
 ###############################################################################
 # Finder                                                                      #

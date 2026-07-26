@@ -109,6 +109,14 @@ Some configurations require manual setup after installation:
    Also add `export PATH="$HOME/agent-config/bin:$PATH"` (already in `.zshrc`).
 5. **Work/rossum config**: `~/zsh/zsh/work.zsh` is gitignored and intentionally not provisioned. Personal machines load no rossum config; create it manually on a work machine if needed. `.gitconfig` also expects `~/.gitconfig-rossum` for repos under `~/rossum/` (see the `includeIf` block); git silently ignores it when missing.
 6. **Raycast**: import `raycast/*.rayconfig` from Raycast's settings. Not scriptable.
+7. **Display scaling**: System Settings → Displays. Per-display and stored by
+   display UUID, so it isn't portable between machines - pick the resolution by
+   hand. The 14" panels are set to the macOS default (1512x982 logical).
+
+`macos.sh` covers the input sources (U.S. first, Slovak second), tracking speed
+and disabling Spotlight's Cmd+Space so Raycast gets it. The keyboard layout and
+the Spotlight hotkey only apply after a **logout** - the running WindowServer
+keeps the old bindings.
 
 iTerm2 no longer needs manual setup - `install.sh` points it at
 `iterm2/preferences` via `defaults write`, as long as iTerm2 isn't running at the
@@ -156,6 +164,25 @@ brew install --cask font-fira-code
 A `Skipping <tap> because it is not trusted` warning is unrelated to the
 Brewfile - it comes from a third-party tap still present locally. If nothing in
 the Brewfile needs it, `brew untap` it.
+
+**iTerm2's font looks tiny / wrong**
+The profile asks for `FiraCode-Regular 14`. If the `font-fira-code` cask didn't
+install (see above), iTerm2 silently falls back to a system font and the text
+looks smaller and thinner. Install the font, then restart iTerm2. Check the
+profile is actually coming from the repo with:
+```bash
+defaults read com.googlecode.iterm2 PrefsCustomFolder
+```
+It must print `~/.dotfiles/iterm2/preferences`. If it's empty, iTerm2 was running
+when `install.sh` ran - quit it and rerun.
+
+**Cmd+Space opens Raycast *and* Spotlight**
+`macos.sh` disables Spotlight's shortcut, but symbolic hotkeys are only re-read
+on login. Log out and back in. To verify the pref itself:
+```bash
+/usr/libexec/PlistBuddy -c "Print :AppleSymbolicHotKeys:64:enabled" \
+  ~/Library/Preferences/com.apple.symbolichotkeys.plist
+```
 
 **Stow reports conflicts**
 `install.sh` moves pre-existing real files to `~/.dotfiles-backup/<timestamp>/`
