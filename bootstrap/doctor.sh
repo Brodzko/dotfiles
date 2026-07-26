@@ -82,13 +82,42 @@ fi
 
 section "Fonts"
 
-# iTerm2's profile asks for FiraCode-Regular 14. A missing font file makes it
-# fall back silently, which reads as "iTerm2's font is broken".
-for font in FiraCode-Regular.ttf CascadiaCodeNF.ttf; do
-    if [ -f "$HOME/Library/Fonts/$font" ] || [ -f "/Library/Fonts/$font" ]; then
-        ok "$font" "installed"
+# iTerm2's profile asks for FiraCode-Regular 14. A missing font makes it fall
+# back silently, which reads as "iTerm2's font is broken".
+#
+# What matters is that the family is *registered* with CoreText, not that a
+# particular filename exists: the casks change which weights ship as separate
+# files vs. one variable font, so checking for FiraCode-Regular.ttf reported a
+# problem on machines where the font worked fine. Ask the font system instead.
+# Collected once (system_profiler takes seconds) and matched with bash's own
+# pattern test rather than a pipe into `grep -q`. `grep -q` exits on the first
+# match, which SIGPIPEs whatever is feeding it, and `set -o pipefail` then
+# reports the pipeline as failed - so every font looked missing on a machine
+# where every font was fine.
+fonts_db="$(system_profiler SPFontsDataType 2>/dev/null)"
+
+font_registered() {
+    [[ $fonts_db == *"$1"* ]]
+}
+
+# HackNF is the profile's non-ASCII font. It matters as much as the ASCII one:
+# when iTerm2 is asked for a font that isn't registered it silently substitutes
+# Menlo *and persists the substitution*, so a profile read before the font casks
+# landed stays wrong even after the fonts show up.
+for family in FiraCode CascadiaCodeNF HackNerdFont; do
+    if font_registered "$family"; then
+        ok "$family" "registered"
     else
-        bad "$font" "not in ~/Library/Fonts or /Library/Fonts" "installed by its cask"
+        found="$(find "$HOME/Library/Fonts" /Library/Fonts -maxdepth 1 -iname "${family}*" 2>/dev/null | wc -l | tr -d ' ')"
+        if [ "$found" -gt 0 ]; then
+            # Files on disk that CoreText doesn't know about: stale font cache,
+            # or the family is disabled in Font Book.
+            bad "$family" "$found file(s) on disk but not registered" \
+                "registered - fix with: sudo atsutil databases -remove && reboot"
+        else
+            bad "$family" "not installed" \
+                "installed - fix with: brew reinstall --cask font-fira-code font-cascadia-code-nf"
+        fi
     fi
 done
 
@@ -106,10 +135,22 @@ ITERM_PREFS="$HOME/.dotfiles/iterm2/preferences"
 want "PrefsCustomFolder" "$(read_default com.googlecode.iterm2 PrefsCustomFolder)" "$ITERM_PREFS"
 want "LoadPrefsFromCustomFolder" "$(read_default com.googlecode.iterm2 LoadPrefsFromCustomFolder)" "1"
 
-live_font="$(read_default com.googlecode.iterm2 "New Bookmarks" | sed -n 's/.*"Normal Font" = "\(.*\)";/\1/p' | head -1)"
-repo_font="$(plutil -p "$ITERM_PREFS/com.googlecode.iterm2.plist" 2>/dev/null |
-    sed -n 's/.*"Normal Font" => "\(.*\)"/\1/p' | head -1)"
-want "profile font" "$live_font" "$repo_font"
+# Both fonts, compared live-vs-repo rather than against a hardcoded value, so
+# the repo stays the single source of truth. "Non Ascii Font" was previously
+# unchecked, which let a machine sit on Menlo for non-ASCII glyphs (broken
+# powerline/nerd-font symbols) while doctor reported the font as fine.
+iterm_live_font() {
+    read_default com.googlecode.iterm2 "New Bookmarks" |
+        sed -n "s/.*\"$1\" = \"\(.*\)\";/\1/p" | head -1
+}
+
+iterm_repo_font() {
+    plutil -p "$ITERM_PREFS/com.googlecode.iterm2.plist" 2>/dev/null |
+        sed -n "s/.*\"$1\" => \"\(.*\)\"/\1/p" | head -1
+}
+
+want "profile font" "$(iterm_live_font 'Normal Font')" "$(iterm_repo_font 'Normal Font')"
+want "profile non-ASCII font" "$(iterm_live_font 'Non Ascii Font')" "$(iterm_repo_font 'Non Ascii Font')"
 
 if pgrep -xq iTerm2; then
     echo -e "  ${YELLOW}!${NC} iTerm2 is running - it rewrites its prefs from memory on quit,"
@@ -156,6 +197,37 @@ want "user first input source" "$(first_source "$HOME/Library/Preferences/com.ap
 want "login window first input source" "$(first_source /Library/Preferences/com.apple.HIToolbox.plist)" "U.S."
 want "current layout" "$(read_default com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID)" "com.apple.keylayout.US"
 
+# "U.S. is first" is not enough for the login window: any other enabled layout
+# there can still come up, and a leftover Slovak/Danish from the setup assistant
+# is exactly how the login screen ends up non-U.S. while this file looks sane.
+#
+# ABC is tolerated - it is US-shaped and older runs of macos.sh installed it -
+# so this reports only genuinely wrong layouts rather than nagging about a
+# harmless leftover.
+login_layouts="$(plutil -p /Library/Preferences/com.apple.HIToolbox.plist 2>/dev/null |
+    awk '/"AppleEnabledInputSources"/ { f = 1 }
+         f && /KeyboardLayout Name/ { sub(/.*=> "/, ""); sub(/"$/, ""); print }' |
+    sort -u)"
+unwanted="$(printf '%s\n' "$login_layouts" | grep -vx 'U\.S\.' | grep -vx 'ABC' |
+    grep -v '^$' | paste -sd, -)"
+if [ -z "$unwanted" ]; then
+    ok "login window layouts" "$(printf '%s' "$login_layouts" | paste -sd, -)"
+else
+    bad "login window layouts" "extra: $unwanted" \
+        "U.S. only - fix by rerunning bootstrap/macos.sh (needs sudo)"
+fi
+
+# Per-app input source memory. On, macOS restores a layout per application and
+# flips the keyboard when you switch apps.
+# Absent key means off, which is the macOS default and how a clean machine looks.
+per_ctx="$(read_default com.apple.HIToolbox AppleGlobalTextInputProperties |
+    sed -n 's/.*TextInputGlobalPropertyPerContextInput"\{0,1\} *= *\([01]\).*/\1/p')"
+if [ "${per_ctx:-0}" = "0" ]; then
+    ok "per-app input source" "off"
+else
+    bad "per-app input source" "on" "off - fix by rerunning bootstrap/macos.sh"
+fi
+
 ###############################################################################
 # Shortcuts & input                                                           #
 ###############################################################################
@@ -178,10 +250,15 @@ want "mouse tracking speed" "$(read_default NSGlobalDomain com.apple.mouse.scali
 
 section "Brewfile"
 
-if brew bundle check --file="$HOME/.dotfiles/Brewfile" --no-upgrade &>/dev/null; then
+# HOMEBREW_NO_AUTO_UPDATE: without it, `brew bundle check` first tries to
+# refresh Homebrew's JSON API cache, and a failure there (offline, or a
+# read-only cache) exits non-zero even when the Brewfile is fully satisfied -
+# reporting a missing package that isn't missing. This script only reports local
+# state, so it has no business updating anything.
+if HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file="$HOME/.dotfiles/Brewfile" --no-upgrade &>/dev/null; then
     ok "brew bundle" "satisfied"
 else
-    bad "brew bundle" "unsatisfied" "run: brew bundle check --file=~/.dotfiles/Brewfile --verbose --no-upgrade"
+    bad "brew bundle" "unsatisfied" "run: HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file=~/.dotfiles/Brewfile --verbose --no-upgrade"
 fi
 
 ###############################################################################
