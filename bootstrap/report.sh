@@ -9,8 +9,8 @@
 # from a machine that works. Usage:
 #
 #   ./bootstrap/report.sh
-#   git checkout -b debug/report && git add -f bootstrap/report-*.txt
-#   git commit -m "chore: Machine report" && git push -u origin debug/report
+#   git checkout -B debug/report && git add -f bootstrap/report-*.txt
+#   git commit -m "chore: Machine report" && git push -fu origin debug/report
 
 set -uo pipefail
 
@@ -60,6 +60,16 @@ cap "FileVault" fdesetup status
 
 cap "login window plist (root-owned, drives the login screen)" \
     sudo plutil -p /Library/Preferences/com.apple.HIToolbox.plist
+
+# The two keys that actually decide the login screen, isolated. Reading them out
+# of the full dump above is error-prone: AppleInputSourceHistory sits right next
+# to AppleEnabledInputSources and looks identical at a glance.
+cap "login window: enabled input sources only" \
+    sudo plutil -extract AppleEnabledInputSources json -o - \
+    /Library/Preferences/com.apple.HIToolbox.plist
+cap "login window: input source history only" \
+    sudo plutil -extract AppleInputSourceHistory json -o - \
+    /Library/Preferences/com.apple.HIToolbox.plist
 cap "user plist (drives the logged-in session)" \
     plutil -p "$HOME/Library/Preferences/com.apple.HIToolbox.plist"
 cap "per-app input source memory" \
@@ -69,6 +79,16 @@ cap "current layout" \
 
 # Whether the Preboot volume even holds a copy to sync, and how old it is.
 cap "preboot volumes" diskutil apfs list
+
+# The actual source of the boot screen's keyboard: the Preboot volume's snapshot
+# of this user's enabled input sources. Neither HIToolbox plist above controls
+# it; only `diskutil apfs updatePreboot` refreshes it. Its mtime says when.
+for candidate in /System/Volumes/Preboot/*/var/db/AllUsersInfo.plist; do
+    [ -f "$candidate" ] || continue
+    cap "preboot snapshot mtime" ls -la "$candidate"
+    cap "boot screen input sources for $(id -un)" \
+        /usr/libexec/PlistBuddy -c "Print :$(id -un):InputSources" "$candidate"
+done
 
 ###############################################################################
 # Fonts                                                                       #
@@ -145,7 +165,7 @@ echo "Done: $OUT"
 echo
 echo "Send it over with:"
 echo "  cd $DOTFILES_DIR"
-echo "  git checkout -b debug/report"
-echo "  git add -f $(basename "$OUT")"
+echo "  git checkout -B debug/report"
+echo "  git add -f bootstrap/$(basename "$OUT")"
 echo "  git commit -m 'chore: Machine report'"
-echo "  git push -u origin debug/report"
+echo "  git push -fu origin debug/report"
