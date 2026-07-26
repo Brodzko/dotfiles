@@ -1,6 +1,8 @@
 # ~/.zshrc
 
-source "$ZDOTDIR/.zsh_secrets.zsh"
+# Secrets are gitignored and only exist after bootstrap/install.sh has copied
+# the example file. Never hard-fail the whole shell on a missing secrets file.
+[[ -f "$ZDOTDIR/.zsh_secrets.zsh" ]] && source "$ZDOTDIR/.zsh_secrets.zsh"
 
 if [[ -f "/opt/homebrew/bin/brew" ]]; then
   # If you're using macOS, you'll want this enabled
@@ -124,7 +126,7 @@ alias q="source '$HOME/zsh/.zshrc'"
 
 export FZF_ALT_C_COMMAND='fd --type d --follow --hidden --exclude node_modules --exclude .git --exclude .Trash --exclude .cache'
 
-source "$ZDOTDIR/git/git.zsh"
+[[ -f "$ZDOTDIR/git/git.zsh" ]] && source "$ZDOTDIR/git/git.zsh"
 
 # Work/rossum-specific config (gitignored, not present on personal machines)
 [[ -f "$ZDOTDIR/work.zsh" ]] && source "$ZDOTDIR/work.zsh"
@@ -133,7 +135,7 @@ source "$ZDOTDIR/git/git.zsh"
 
 export DOCKER_HOST="unix://$HOME/.colima/docker.sock"
 
-source "$ZDOTDIR/brew.zsh"
+[[ -f "$ZDOTDIR/brew.zsh" ]] && source "$ZDOTDIR/brew.zsh"
 
 dotfiles() {
   cd ~/$DOT_DIR
