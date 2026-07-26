@@ -1,63 +1,83 @@
+# Brewfile
+#
+# Keep entries grouped under their section headings. `brew bundle dump --force`
+# flattens this file and drops the comments, so prefer editing by hand or via
+# the `badd` helper (see zsh/zsh/brew.zsh).
 
-# Casks - Applications
-# Casks - Fonts
-# Core utilities
-# Database
-# Development tools
-# Docker & Kubernetes
-# Git tools
-# VSCode Extensions
-brew "1password-cli"
+###############################################################################
+# Core utilities                                                              #
+###############################################################################
 brew "bat"
-brew "colima"
 brew "coreutils"
-brew "docker-buildx"
-brew "docker-compose"
-brew "docker"
 brew "eza"
 brew "fd"
-brew "fnm"
 brew "fzf"
-brew "gh"
-brew "git-delta"
-brew "git"
-brew "glab"
 brew "gum"
-brew "helm"
 brew "htop"
-brew "jira-cli"
 brew "jq"
-brew "kubernetes-cli"
-brew "lazygit"
-brew "libmagic"
-brew "mas"
-brew "neovim"
-brew "pgcli"
 brew "pigz"
-brew "poetry"
-brew "poppler"
-brew "postgresql@14", restart_service: :changed
-brew "pybind11"
-brew "python@3.12"
-brew "qpdf"
-brew "re2"
 brew "ripgrep"
 brew "starship"
 brew "stow"
 brew "tmux"
 brew "tree"
-brew "uv"
 brew "wget"
+
+###############################################################################
+# Git & forge tools                                                           #
+###############################################################################
+brew "gh"
+brew "git"
+brew "git-delta"
+brew "glab"
+brew "jira-cli"
+brew "lazygit"
+
+###############################################################################
+# Development tools                                                           #
+###############################################################################
+brew "fnm"
+brew "neovim"
+brew "poetry"
+brew "python@3.12"
+brew "uv"
 brew "yamllint"
+
+###############################################################################
+# Docker & Kubernetes                                                         #
+###############################################################################
+brew "colima"
+brew "docker"
+brew "docker-buildx"
+brew "docker-compose"
+brew "helm"
+brew "kubernetes-cli"
+
+###############################################################################
+# Database                                                                    #
+###############################################################################
+brew "pgcli"
+brew "postgresql@14", restart_service: :changed
+
+###############################################################################
+# Libraries & misc                                                            #
+###############################################################################
+brew "libmagic"
+brew "mas"
+brew "poppler"
+brew "pybind11"
+brew "qpdf"
+brew "re2"
 brew "zbar"
 brew "zsh-syntax-highlighting"
+
+###############################################################################
+# Casks - Applications                                                        #
+###############################################################################
 cask "1password"
+cask "1password-cli"
 cask "brave-browser"
 cask "firefox"
-cask "font-cascadia-code-nf"
-cask "font-fira-code"
-cask "font-hack-nerd-font"
-cask "font-meslo-lg-nerd-font"
 cask "google-chrome"
 cask "iterm2"
 cask "karabiner-elements"
@@ -73,11 +93,25 @@ cask "steam"
 cask "supacode"
 cask "visual-studio-code"
 cask "vlc"
-tap "ankitpokhrel/jira-cli"
+
+###############################################################################
+# Casks - Fonts                                                               #
+###############################################################################
+cask "font-cascadia-code-nf"
+cask "font-fira-code"
+cask "font-hack-nerd-font"
+cask "font-meslo-lg-nerd-font"
+
+###############################################################################
+# VSCode Extensions                                                           #
+#                                                                             #
+# Locally-installed extensions (pi.pi-vscode-diagnostics, quill.quill-vscode)  #
+# are intentionally absent - they are not on the marketplace.                  #
+###############################################################################
 vscode "ancientlord.nightowl-theme"
+vscode "anthropic.claude-code"
 vscode "avetis.tokyo-night"
 vscode "ckolkman.vscode-postgres"
-vscode "codeium.codeium"
 vscode "dbaeumer.vscode-eslint"
 vscode "docker.docker"
 vscode "donjayamanne.python-environment-manager"
@@ -86,12 +120,12 @@ vscode "enkia.tokyo-night"
 vscode "esbenp.prettier-vscode"
 vscode "fnando.linter"
 vscode "foxundermoon.shell-format"
-vscode "github.copilot-chat"
-vscode "github.copilot"
 vscode "github.vscode-github-actions"
 vscode "gitlab.gitlab-workflow"
 vscode "gruntfuggly.todo-tree"
 vscode "hashicorp.terraform"
+vscode "haskell.haskell"
+vscode "justusadam.language-haskell"
 vscode "kennylong.kubernetes-yaml-formatter"
 vscode "liviuschera.noctis"
 vscode "mquandalle.graphql"
@@ -103,7 +137,9 @@ vscode "ms-python.debugpy"
 vscode "ms-python.python"
 vscode "ms-python.vscode-pylance"
 vscode "ms-python.vscode-python-envs"
+vscode "mtxr.sqltools"
 vscode "orta.vscode-twoslash-queries"
+vscode "oxc.oxc-vscode"
 vscode "pamaron.pytest-runner"
 vscode "redhat.vscode-yaml"
 vscode "richie5um2.vscode-sort-json"
@@ -111,9 +147,8 @@ vscode "robbowen.synthwave-vscode"
 vscode "snowflake.snowflake-vsc"
 vscode "syler.sass-indented"
 vscode "timonwong.shellcheck"
+vscode "typescriptteam.native-preview"
 vscode "unifiedjs.vscode-mdx"
-vscode "visualstudioexptteam.intellicode-api-usage-examples"
-vscode "visualstudioexptteam.vscodeintellicode"
 vscode "vscode-icons-team.vscode-icons"
 vscode "wayou.file-icons-mac"
 vscode "wesbos.theme-cobalt2"

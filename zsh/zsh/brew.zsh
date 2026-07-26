@@ -31,14 +31,15 @@ badd() {
 
   echo "==> Installing '$package_name' with options: $@"
   if brew install "$@"; then
-    echo "==> Adding '$package_name' to $MY_BREWFILE"
-    # Add the line to the file, but check if it's already there
-    if ! grep -q -x "$brewfile_line" "$MY_BREWFILE"; then
-      echo "$brewfile_line" >> "$MY_BREWFILE"
-      # Optional: Sort the file to keep it clean
-      sort -u "$MY_BREWFILE" -o "$MY_BREWFILE"
-    else
+    # Add the line to the file, but check if it's already there.
+    # NOTE: do NOT sort the Brewfile - it is hand-grouped under section
+    # comments and sorting shreds that structure.
+    if grep -q -x "$brewfile_line" "$MY_BREWFILE"; then
       echo "==> '$package_name' is already in $MY_BREWFILE"
+    else
+      echo "==> Adding '$package_name' to $MY_BREWFILE"
+      echo "$brewfile_line" >> "$MY_BREWFILE"
+      echo "==> Move it into the right section when you get a chance."
     fi
   else
     echo "Failed to install '$package_name'. Brewfile not updated." >&2
