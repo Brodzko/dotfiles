@@ -2,15 +2,39 @@
 
 # macOS System Preferences Configuration
 # Run this script to set up macOS defaults
-# 
+#
 # Note: Some changes require logging out or restarting to take effect
+#
+# Deliberately NOT `set -e`. Several `defaults` domains are protected by TCC
+# (Safari above all) and PlistBuddy errors on keys that don't exist yet on a
+# fresh machine. Previously the first such failure aborted the script and
+# everything below it silently never ran.
 
-set -e
+set -uo pipefail
 
 # Colors for output
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
+
+SKIPPED=()
+
+# Write a default, recording (not aborting on) failures.
+d() {
+    if ! defaults write "$@" 2>/dev/null; then
+        SKIPPED+=("defaults write $1 $2")
+        echo -e "  ${RED}✗${NC} $1 $2"
+    fi
+}
+
+# Set a key in a plist, adding it if it isn't there yet.
+plist_set() {
+    local file="$1" key="$2" type="$3" value="$4"
+    /usr/libexec/PlistBuddy -c "Set ${key} ${value}" "$file" &>/dev/null \
+        || /usr/libexec/PlistBuddy -c "Add ${key} ${type} ${value}" "$file" &>/dev/null \
+        || SKIPPED+=("PlistBuddy ${key}")
+}
 
 echo -e "${GREEN}Configuring macOS defaults...${NC}"
 
@@ -20,9 +44,13 @@ echo -e "${GREEN}Configuring macOS defaults...${NC}"
 
 echo -e "\n${YELLOW}Configuring UI/UX...${NC}"
 
+# Ask for sudo up front so the prompt doesn't appear halfway through.
+sudo -v || echo -e "  ${YELLOW}No sudo - skipping the few steps that need it.${NC}"
+
 # Disable the sound effects on boot
-sudo nvram SystemAudioVolume="%00"
-defaults write NSGlobalDomain com.apple.sound.uiaudio.enabled -int 0
+# (nvram writes fail on Apple Silicon when Secure Boot is at Full Security.)
+sudo nvram SystemAudioVolume="%00" 2>/dev/null || SKIPPED+=("nvram SystemAudioVolume")
+d NSGlobalDomain com.apple.sound.uiaudio.enabled -int 0
 
 # Expand save panel by default
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
@@ -117,15 +145,24 @@ defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 defaults write com.apple.finder FXPreferredViewStyle -string "icnv"
 defaults write com.apple.finder FXArrangeGroupViewBy -string "Name"
 
-/usr/libexec/PlistBuddy -c "Set :DesktopViewSettings:IconViewSettings:arrangeBy name" ~/Library/Preferences/com.apple.finder.plist
-/usr/libexec/PlistBuddy -c "Set :StandardViewSettings:IconViewSettings:arrangeBy name" ~/Library/Preferences/com.apple.finder.plist
-/usr/libexec/PlistBuddy -c "Set :FK_StandardViewSettings:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist
+# Icon view arrange-by settings. These keys don't exist on a fresh machine, so
+# fall back to Add. cfprefsd also caches this plist, hence the flush below.
+defaults read com.apple.finder &>/dev/null
+FINDER_PLIST="$HOME/Library/Preferences/com.apple.finder.plist"
+if [ -f "$FINDER_PLIST" ]; then
+    plist_set "$FINDER_PLIST" ":DesktopViewSettings:IconViewSettings:arrangeBy" string name
+    plist_set "$FINDER_PLIST" ":StandardViewSettings:IconViewSettings:arrangeBy" string name
+    plist_set "$FINDER_PLIST" ":FK_StandardViewSettings:IconViewSettings:arrangeBy" string grid
+    defaults read com.apple.finder &>/dev/null
+else
+    SKIPPED+=("Finder icon view arrangeBy (no plist yet - open Finder once and rerun)")
+fi
 
 # Show the ~/Library folder
 chflags nohidden ~/Library
 
 # Show the /Volumes folder
-sudo chflags nohidden /Volumes
+sudo chflags nohidden /Volumes 2>/dev/null || SKIPPED+=("chflags nohidden /Volumes")
 
 ###############################################################################
 # Dock, Dashboard, and hot corners                                           #
@@ -169,20 +206,30 @@ defaults write com.apple.dock show-recents -bool false
 
 echo -e "\n${YELLOW}Configuring Safari...${NC}"
 
-# Privacy: don't send search queries to Apple
-defaults write com.apple.Safari UniversalSearchEnabled -bool false
-defaults write com.apple.Safari SuppressSearchSuggestions -bool true
+# Safari's preferences live inside its sandbox container and are protected by
+# TCC. Writing them fails with "Could not write domain com.apple.Safari" unless
+# the terminal has Full Disk Access, and several of the old keys no longer do
+# anything on current macOS anyway.
+#
+# Probe with a real write: the container plist is readable by its owner even
+# when TCC blocks writes, so a readability check gives a false positive. Only
+# attempting a write tells the truth.
+if defaults write com.apple.Safari DotfilesWriteProbe -bool true 2>/dev/null; then
+    defaults delete com.apple.Safari DotfilesWriteProbe 2>/dev/null
 
-# Show the full URL in the address bar (note: this still hides the scheme)
-defaults write com.apple.Safari ShowFullURLInSmartSearchField -bool true
-
-# Enable the Develop menu and the Web Inspector in Safari
-defaults write com.apple.Safari IncludeDevelopMenu -bool true
-defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
-defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
-
-# Enable "Do Not Track"
-defaults write com.apple.Safari SendDoNotTrackHTTPHeader -bool true
+    d com.apple.Safari UniversalSearchEnabled -bool false
+    d com.apple.Safari SuppressSearchSuggestions -bool true
+    d com.apple.Safari ShowFullURLInSmartSearchField -bool true
+    d com.apple.Safari IncludeDevelopMenu -bool true
+    d com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
+    d com.apple.Safari SendDoNotTrackHTTPHeader -bool true
+else
+    echo -e "  ${YELLOW}Skipping Safari: its prefs are TCC-protected.${NC}"
+    echo -e "  ${YELLOW}Grant Full Disk Access to your terminal and rerun, or set these by hand:${NC}"
+    echo -e "  ${YELLOW}  Settings → Search: uncheck search-engine suggestions${NC}"
+    echo -e "  ${YELLOW}  Settings → Advanced: 'Show full website address' + 'Show features for web developers'${NC}"
+    SKIPPED+=("Safari (needs Full Disk Access)")
+fi
 
 ###############################################################################
 # Terminal                                                                    #
@@ -190,11 +237,14 @@ defaults write com.apple.Safari SendDoNotTrackHTTPHeader -bool true
 
 echo -e "\n${YELLOW}Configuring Terminal...${NC}"
 
+# NOTE: domain is com.apple.Terminal with a capital T. The lowercase spelling
+# this script used to have silently created a junk domain that nothing reads.
+
 # Only use UTF-8 in Terminal.app
-defaults write com.apple.terminal StringEncodings -array 4
+d com.apple.Terminal StringEncodings -array 4
 
 # Enable Secure Keyboard Entry in Terminal.app
-defaults write com.apple.terminal SecureKeyboardEntry -bool true
+d com.apple.Terminal SecureKeyboardEntry -bool true
 
 ###############################################################################
 # Activity Monitor                                                            #
@@ -234,7 +284,15 @@ defaults write com.apple.screencapture disable-shadow -bool true
 # Done                                                                        #
 ###############################################################################
 
-echo -e "\n${GREEN}✓ macOS defaults configured!${NC}"
+if [ ${#SKIPPED[@]} -eq 0 ]; then
+    echo -e "\n${GREEN}✓ macOS defaults configured!${NC}"
+else
+    echo -e "\n${GREEN}✓ macOS defaults configured${NC}, with ${#SKIPPED[@]} skipped:"
+    for s in "${SKIPPED[@]}"; do
+        echo -e "  ${YELLOW}-${NC} $s"
+    done
+fi
+
 echo -e "\n${YELLOW}Note: Some changes require a logout/restart to take effect.${NC}"
 echo -e "Kill affected applications to apply changes now? (y/n)"
 read -r response
@@ -243,7 +301,6 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     for app in "Activity Monitor" \
         "Dock" \
         "Finder" \
-        "Safari" \
         "SystemUIServer"; do
         killall "${app}" &> /dev/null || true
     done
