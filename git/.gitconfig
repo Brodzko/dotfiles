@@ -23,7 +23,7 @@ paging = always
 hyperlinks = true
 hyperlinks-file-link-format = "vscode://file/{path}:{line}"
 [merge]
-confictStyle = zdiff3
+conflictStyle = zdiff3
 [diff]
 colorMoved = default
 algorithm = histogram
