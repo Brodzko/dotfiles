@@ -69,7 +69,8 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 .dotfiles/
 ├── bootstrap/          # Installation and setup scripts
 │   ├── install.sh     # Main installation script
-│   └── macos.sh       # macOS system preferences
+│   ├── macos.sh       # macOS system preferences
+│   └── doctor.sh      # Read-only expected-vs-actual report
 ├── Brewfile           # Homebrew packages
 ├── bat/               # bat configuration
 ├── git/               # Git config and themes
@@ -109,12 +110,14 @@ Some configurations require manual setup after installation:
    Also add `export PATH="$HOME/agent-config/bin:$PATH"` (already in `.zshrc`).
 5. **Work/rossum config**: `~/zsh/zsh/work.zsh` is gitignored and intentionally not provisioned. Personal machines load no rossum config; create it manually on a work machine if needed. `.gitconfig` also expects `~/.gitconfig-rossum` for repos under `~/rossum/` (see the `includeIf` block); git silently ignores it when missing.
 6. **Raycast**: import `raycast/*.rayconfig` from Raycast's settings. Not scriptable.
-7. **Display scaling**: System Settings → Displays. Per-display and stored by
-   display UUID, so it isn't portable between machines - pick the resolution by
-   hand. The 14" panels are set to the macOS default (1512x982 logical).
+7. **External displays**: scaling for anything other than the built-in panel.
+   `macos.sh` only sets the built-in one (to half its native size, i.e. macOS'
+   "Default"), because "native / 2" isn't necessarily the mode macOS calls
+   Default on an external monitor.
 
-`macos.sh` covers the input sources (U.S. first, Slovak second), tracking speed
-and disabling Spotlight's Cmd+Space so Raycast gets it. The keyboard layout and
+`macos.sh` covers the input sources (U.S. first, Slovak second), tracking speed,
+the built-in display's scaling (via `displayplacer` - there is no `defaults` key
+for it) and disabling Spotlight's Cmd+Space so Raycast gets it. The keyboard layout and
 the Spotlight hotkey only apply after a **logout** - the running WindowServer
 keeps the old bindings.
 
@@ -129,6 +132,18 @@ iTerm2 no longer needs manual setup - `install.sh` points it at
 time.
 
 ## Troubleshooting a fresh machine
+
+Start here:
+
+```bash
+./bootstrap/doctor.sh
+```
+
+It compares this machine against what the dotfiles expect - display scaling,
+fonts, iTerm2's profile, both keyboard layout plists, the Spotlight hotkey,
+tracking speed and the Brewfile - and prints the fix for anything that differs.
+It writes nothing and needs no sudo, so it's also the fastest way to diff a
+misbehaving machine against a working one.
 
 **`macos.sh` says "Could not write domain com.apple.Safari"**
 Expected. Safari's prefs are TCC-protected. The script detects this, skips the

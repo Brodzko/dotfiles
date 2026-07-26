@@ -62,6 +62,9 @@ brew "postgresql@14", restart_service: :changed
 ###############################################################################
 # Libraries & misc                                                            #
 ###############################################################################
+# displayplacer: bootstrap/macos.sh needs it to set the display scaling, which
+# has no `defaults` key.
+brew "displayplacer"
 brew "libmagic"
 brew "mas"
 brew "poppler"

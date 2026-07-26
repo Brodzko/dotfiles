@@ -154,6 +154,79 @@ else
 fi
 
 ###############################################################################
+# Display scaling                                                             #
+###############################################################################
+
+echo -e "\n${YELLOW}Configuring display scaling...${NC}"
+
+# There is no `defaults` key for the scaled resolution - it lives in
+# WindowServer state keyed by display UUID - so this needs displayplacer.
+#
+# The wanted mode is the panel's default: exactly half the native pixel
+# dimensions with HiDPI on (3024x1964 -> 1512x982). Any bigger logical size is
+# what System Settings calls "More Space", and it makes every point-sized font
+# render smaller - iTerm2's 14pt above all, which is what "the font is broken"
+# usually turns out to be.
+#
+# Built-in screen only. On an external panel "native / 2" is not necessarily the
+# mode macOS calls Default, so those are left alone.
+set_default_scaling() {
+    local id="$1" w="$2" h="$3"
+    [ -n "$id" ] && [ "$w" -gt 0 ] || return 0
+
+    local target="$((w / 2))x$((h / 2))"
+    if displayplacer "id:${id} res:${target} scaling:on" &>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} built-in display at ${target} (native ${w}x${h})"
+    else
+        SKIPPED+=("display scaling ${target} for ${id}")
+    fi
+}
+
+if command -v displayplacer &>/dev/null; then
+    dp_id=""
+    dp_builtin=0
+    dp_w=0
+    dp_h=0
+
+    # `displayplacer list` prints one block per screen: a persistent id, a Type
+    # line, then every supported mode. The native resolution is simply the
+    # largest mode in the block.
+    while IFS= read -r line; do
+        case "$line" in
+            "Persistent screen id: "*)
+                [ "$dp_builtin" -eq 1 ] && set_default_scaling "$dp_id" "$dp_w" "$dp_h"
+                dp_id="${line#Persistent screen id: }"
+                dp_builtin=0
+                dp_w=0
+                dp_h=0
+                ;;
+            Type:*built?in*)
+                dp_builtin=1
+                ;;
+            *"mode "*res:*)
+                res="${line#*res:}"
+                res="${res%% *}"
+                mode_w="${res%%x*}"
+                mode_h="${res##*x}"
+                # Compare total pixels, not width: the panel also advertises
+                # letterboxed modes at full width (3024x1890 next to the real
+                # 3024x1964), and the widest-wins version of this picked those.
+                case "$mode_w$mode_h" in
+                    *[!0-9]*) continue ;;
+                esac
+                if [ $((mode_w * mode_h)) -gt $((dp_w * dp_h)) ]; then
+                    dp_w="$mode_w"
+                    dp_h="$mode_h"
+                fi
+                ;;
+        esac
+    done < <(displayplacer list 2>/dev/null)
+    [ "$dp_builtin" -eq 1 ] && set_default_scaling "$dp_id" "$dp_w" "$dp_h"
+else
+    SKIPPED+=("display scaling (displayplacer missing - run 'brew bundle' first)")
+fi
+
+###############################################################################
 # Spotlight (Raycast owns Cmd+Space)                                          #
 ###############################################################################
 
