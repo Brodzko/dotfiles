@@ -135,22 +135,53 @@ d com.apple.HIToolbox AppleSelectedInputSources -array \
 
 d com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID -string "com.apple.keylayout.US"
 
-# The user-level plist above only covers an already-running session. The layout
-# the machine boots with - login window, and every session started from it -
-# comes from the root-owned system plist, which the setup assistant fills in
-# from whatever region was picked during onboarding. Without this, the layout
-# looks correct once you switch it by hand and is Slovak again after a restart.
+# Per-app input source memory. With this on, macOS remembers a layout per
+# application and silently restores it when that app comes forward, which reads
+# as "the layout flips back to Slovak on its own". One global layout instead.
+d com.apple.HIToolbox AppleGlobalTextInputProperties -dict \
+    TextInputGlobalPropertyPerContextInput -bool false
+
+# The user-level plist above only covers an already-running session. Two more
+# places decide what the keyboard is *before* the session exists, and neither
+# inherits from the user plist:
+#
+#   1. /Library/Preferences/com.apple.HIToolbox.plist - the login window, and
+#      therefore every session started from it. The setup assistant fills this
+#      from whatever region was picked during onboarding.
+#   2. The Preboot volume - the FileVault password screen shown at boot, before
+#      macOS is even up. It keeps its own copy and ignores (1) until resynced.
+#
+# U.S. is written as the only entry: there is nothing to type at a login prompt
+# that needs a second layout, and a single entry means nothing can flip.
 HITOOLBOX_SYSTEM="/Library/Preferences/com.apple.HIToolbox"
+
+# `sudo -v` was called at the top, but the timestamp can be cold by now (long
+# script, or the caller declined then). Re-prompt rather than skip silently -
+# skipping here is invisible in the summary and leaves the login screen wrong.
+if ! sudo -n true 2>/dev/null; then
+    echo -e "  ${YELLOW}sudo needed for the login window and pre-boot keyboard layout.${NC}"
+    sudo -v || true
+fi
+
 if sudo -n true 2>/dev/null; then
-    sudo defaults write "$HITOOLBOX_SYSTEM" AppleEnabledInputSources -array \
+    if sudo defaults write "$HITOOLBOX_SYSTEM" AppleEnabledInputSources -array \
         '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>' \
-        '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>252</integer><key>KeyboardLayout Name</key><string>ABC</string></dict>' \
         && sudo defaults write "$HITOOLBOX_SYSTEM" AppleSelectedInputSources -array \
             '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>' \
-        && sudo defaults write "$HITOOLBOX_SYSTEM" AppleCurrentKeyboardLayoutInputSourceID -string "com.apple.keylayout.US" \
-        || SKIPPED+=("login window keyboard layout (system HIToolbox plist)")
+        && sudo defaults write "$HITOOLBOX_SYSTEM" AppleCurrentKeyboardLayoutInputSourceID -string "com.apple.keylayout.US"; then
+        echo -e "  ${GREEN}✓${NC} login window keyboard layout (U.S. only)"
+    else
+        SKIPPED+=("login window keyboard layout (system HIToolbox plist)")
+    fi
+
+    # Pushes the layout above onto the Preboot volume. No-op without FileVault.
+    if sudo diskutil apfs updatePreboot / &>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} pre-boot (FileVault) keyboard layout synced"
+    else
+        SKIPPED+=("pre-boot keyboard layout (diskutil apfs updatePreboot)")
+    fi
 else
-    SKIPPED+=("login window keyboard layout (needs sudo - rerun with a working sudo session)")
+    SKIPPED+=("login window + pre-boot keyboard layout (no sudo)")
 fi
 
 ###############################################################################
