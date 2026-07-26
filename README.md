@@ -135,6 +135,24 @@ dozens of lines. It also matches what `install.sh` runs (`brew bundle
 Common causes: an extension was unpublished or renamed on the VSCode
 marketplace, or a formula moved to a cask (`1password-cli` is cask-only).
 
+**`brew "docker"` fails with "Could not symlink etc/bash_completion.d/docker"**
+The deprecated `docker-completion` formula owns that path. It used to be a
+dependency of `docker` 28.x; `docker` 29+ ships its own completions and has no
+dependencies, so the two now collide. Drop it and reinstall:
+```bash
+brew uninstall --force docker-completion
+brew upgrade docker   # or: brew link --overwrite docker
+```
+
+**A font cask fails with "the existing Font is different from the one being
+installed"**
+The font was installed by hand into `~/Library/Fonts` at another version, so
+the cask refuses to adopt it. Move the loose files aside and reinstall:
+```bash
+mv ~/Library/Fonts/FiraCode-*.ttf ~/.dotfiles-backup/
+brew install --cask font-fira-code
+```
+
 A `Skipping <tap> because it is not trusted` warning is unrelated to the
 Brewfile - it comes from a third-party tap still present locally. If nothing in
 the Brewfile needs it, `brew untap` it.
