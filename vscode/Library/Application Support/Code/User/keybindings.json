@@ -1,0 +1,91 @@
+// Place your key bindings in this file to override the defaultsauto[]
+[
+  {
+    "key": "cmd+t cmd+r",
+    "command": "workbench.action.tasks.runTask"
+  },
+  {
+    "key": "cmd+n",
+    "command": "explorer.newFile"
+  },
+  {
+    "key": "ctrl+cmd+g",
+    "command": "editor.action.nextSelectionMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+f3",
+    "command": "-editor.action.nextSelectionMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "ctrl+shift+cmd+g",
+    "command": "editor.action.previousSelectionMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "shift+cmd+f3",
+    "command": "-editor.action.previousSelectionMatchFindAction",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+k cmd+s",
+    "command": "git.stageSelectedRanges",
+    "when": "isInDiffEditor && !operationInProgress"
+  },
+  {
+    "key": "cmd+k alt+cmd+s",
+    "command": "-git.stageSelectedRanges",
+    "when": "isInDiffEditor && !operationInProgress"
+  },
+  {
+    "key": "cmd+k cmd+u",
+    "command": "git.unstageSelectedRanges",
+    "when": "isInDiffEditor && !operationInProgress"
+  },
+  {
+    "key": "cmd+k cmd+n",
+    "command": "-git.unstageSelectedRanges",
+    "when": "isInDiffEditor && !operationInProgress"
+  },
+  {
+    "key": "ctrl+.",
+    "command": "editor.action.revealDefinition",
+    "when": "editorHasDefinitionProvider && editorTextFocus"
+  },
+  {
+    "key": "f12",
+    "command": "-editor.action.revealDefinition",
+    "when": "editorHasDefinitionProvider && editorTextFocus"
+  },
+  {
+    "key": "ctrl+,",
+    "command": "references-view.findReferences",
+    "when": "editorHasReferenceProvider"
+  },
+  {
+    "key": "shift+alt+f12",
+    "command": "-references-view.findReferences",
+    "when": "editorHasReferenceProvider"
+  },
+  {
+    "key": "cmd+k ctrl+.",
+    "command": "editor.action.revealDefinitionAside",
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+  },
+  {
+    "key": "cmd+k f12",
+    "command": "-editor.action.revealDefinitionAside",
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+  },
+  {
+    "key": "shift+cmd+r",
+    "command": "editor.action.rename",
+    "when": "editorHasRenameProvider && editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "f2",
+    "command": "-editor.action.rename",
+    "when": "editorHasRenameProvider && editorTextFocus && !editorReadonly"
+  }
+]
