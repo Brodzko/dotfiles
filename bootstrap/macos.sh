@@ -135,6 +135,24 @@ d com.apple.HIToolbox AppleSelectedInputSources -array \
 
 d com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID -string "com.apple.keylayout.US"
 
+# The user-level plist above only covers an already-running session. The layout
+# the machine boots with - login window, and every session started from it -
+# comes from the root-owned system plist, which the setup assistant fills in
+# from whatever region was picked during onboarding. Without this, the layout
+# looks correct once you switch it by hand and is Slovak again after a restart.
+HITOOLBOX_SYSTEM="/Library/Preferences/com.apple.HIToolbox"
+if sudo -n true 2>/dev/null; then
+    sudo defaults write "$HITOOLBOX_SYSTEM" AppleEnabledInputSources -array \
+        '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>' \
+        '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>252</integer><key>KeyboardLayout Name</key><string>ABC</string></dict>' \
+        && sudo defaults write "$HITOOLBOX_SYSTEM" AppleSelectedInputSources -array \
+            '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>' \
+        && sudo defaults write "$HITOOLBOX_SYSTEM" AppleCurrentKeyboardLayoutInputSourceID -string "com.apple.keylayout.US" \
+        || SKIPPED+=("login window keyboard layout (system HIToolbox plist)")
+else
+    SKIPPED+=("login window keyboard layout (needs sudo - rerun with a working sudo session)")
+fi
+
 ###############################################################################
 # Spotlight (Raycast owns Cmd+Space)                                          #
 ###############################################################################

@@ -118,6 +118,12 @@ and disabling Spotlight's Cmd+Space so Raycast gets it. The keyboard layout and
 the Spotlight hotkey only apply after a **logout** - the running WindowServer
 keeps the old bindings.
 
+The layout is written twice on purpose: `~/Library/Preferences/com.apple.HIToolbox`
+for the current user, and the root-owned `/Library/Preferences/com.apple.HIToolbox`
+for the login window - the latter is what the machine boots with, so without it
+the layout reverts on every restart. That write needs `sudo`; if the sudo session
+has expired it shows up under "skipped".
+
 iTerm2 no longer needs manual setup - `install.sh` points it at
 `iterm2/preferences` via `defaults write`, as long as iTerm2 isn't running at the
 time.
@@ -166,15 +172,22 @@ Brewfile - it comes from a third-party tap still present locally. If nothing in
 the Brewfile needs it, `brew untap` it.
 
 **iTerm2's font looks tiny / wrong**
-The profile asks for `FiraCode-Regular 14`. If the `font-fira-code` cask didn't
-install (see above), iTerm2 silently falls back to a system font and the text
-looks smaller and thinner. Install the font, then restart iTerm2. Check the
-profile is actually coming from the repo with:
-```bash
-defaults read com.googlecode.iterm2 PrefsCustomFolder
-```
-It must print `~/.dotfiles/iterm2/preferences`. If it's empty, iTerm2 was running
-when `install.sh` ran - quit it and rerun.
+The profile asks for `FiraCode-Regular 14`. Two independent causes:
+
+1. iTerm2 isn't reading the repo profile at all. Check with:
+   ```bash
+   defaults read com.googlecode.iterm2 PrefsCustomFolder
+   ```
+   `Domain ... does not exist` or an empty value means iTerm2 was running when
+   `install.sh` reached that step, so it was skipped (`install.sh` now reports
+   this as a failure instead of a passing note). iTerm2 rewrites its prefs from
+   memory when it quits, so it has to be closed for the fix to stick:
+   ```bash
+   # from Terminal.app, with iTerm2 fully quit (Cmd+Q, not just closed)
+   ~/.dotfiles/bootstrap/install.sh
+   ```
+2. `font-fira-code` isn't installed (see above), in which case iTerm2 silently
+   falls back to a system font. Install it and restart iTerm2.
 
 **Cmd+Space opens Raycast *and* Spotlight**
 `macos.sh` disables Spotlight's shortcut, but symbolic hotkeys are only re-read

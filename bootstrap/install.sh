@@ -223,9 +223,16 @@ step "Configuring iTerm2..."
 
 ITERM_PREFS="$DOTFILES_DIR/iterm2/preferences"
 if [ -d "$ITERM_PREFS" ]; then
-    if pgrep -xq iTerm2; then
-        echo -e "  ${YELLOW}iTerm2 is running - quit it and rerun, or set the prefs folder manually${NC}"
-        echo -e "  ${YELLOW}(Settings → General → Preferences → load from custom folder)${NC}"
+    # Check first: pointing iTerm2 at the folder while it runs is pointless (it
+    # rewrites its prefs from memory on quit), but the usual way to run this
+    # script is *from* iTerm2, so a plain "skipped" message got ignored and the
+    # machine kept using iTerm2's stock profile - stock font included.
+    if [ "$(defaults read com.googlecode.iterm2 PrefsCustomFolder 2>/dev/null)" = "$ITERM_PREFS" ] \
+        && [ "$(defaults read com.googlecode.iterm2 LoadPrefsFromCustomFolder 2>/dev/null)" = "1" ]; then
+        echo -e "  ${GREEN}✓${NC} iTerm2 already loads prefs from $ITERM_PREFS"
+    elif pgrep -xq iTerm2; then
+        fail "iTerm2 prefs not set - it was running. Quit iTerm2 and rerun from Terminal.app"
+        echo -e "  ${YELLOW}(or Settings → General → Preferences → load from custom folder)${NC}"
     else
         defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$ITERM_PREFS"
         defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
