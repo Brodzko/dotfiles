@@ -2,9 +2,20 @@
 
 This directory will contain your iTerm2 preferences once configured.
 
-## Setup Instructions
+## Setup
 
-To manage your iTerm2 settings with dotfiles:
+`bootstrap/install.sh` does this automatically:
+
+```bash
+defaults write com.googlecode.iterm2 PrefsCustomFolder -string ~/.dotfiles/iterm2/preferences
+defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
+```
+
+**iTerm2 must be quit when this runs** - it overwrites its prefs on exit and will
+clobber the change otherwise. The installer detects a running iTerm2 and tells
+you to do it by hand instead.
+
+## Manual fallback
 
 1. **Configure iTerm2 to use this folder**:
    - Open iTerm2
@@ -24,7 +35,8 @@ To manage your iTerm2 settings with dotfiles:
 
 ## Note on Stow
 
-This package doesn't use Stow. Instead:
+This package is deliberately **not** in the `PACKAGES` array in
+`bootstrap/install.sh`. Instead:
 - The `preferences/` folder stays in your dotfiles
 - You manually configure iTerm2 to load/save from this location
 - iTerm2 handles the syncing itself

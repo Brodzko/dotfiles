@@ -54,6 +54,7 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 - **git** - Git configuration with delta for better diffs
 - **nvim** - Neovim configuration
 - **bat** - Cat clone with syntax highlighting
+- **vscode** - `settings.json`, `keybindings.json` and snippets (extensions live in the `Brewfile`)
 
 ### System
 - **karabiner** - Keyboard customization
@@ -81,6 +82,7 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 ├── ssh/               # SSH config template
 ├── starship/          # Starship prompt config
 ├── tmux/              # tmux configuration
+├── vscode/            # VSCode settings, keybindings, snippets
 └── zsh/               # zsh configuration
     └── zsh/           # Actual zsh configs (ZDOTDIR)
         ├── git/       # Git-related functions
@@ -93,7 +95,7 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 Some configurations require manual setup after installation:
 
 1. **SSH Config**: Copy `~/.ssh/config.example` to `~/.ssh/config` and customize
-2. **Zsh Secrets**: Copy `~/zsh/.zsh_secrets.example.zsh` to `~/zsh/.zsh_secrets.zsh` and add API keys
+2. **Zsh Secrets**: `install.sh` copies the example for you; fill in the API keys
 3. **Stow symlinks**: The install script handles this, but if needed manually:
    ```bash
    cd ~/.dotfiles
@@ -105,7 +107,32 @@ Some configurations require manual setup after installation:
    ~/agent-config/scripts/sync.sh
    ```
    Also add `export PATH="$HOME/agent-config/bin:$PATH"` (already in `.zshrc`).
-5. **Work/rossum config**: `~/zsh/zsh/work.zsh` is gitignored and intentionally not provisioned. Personal machines load no rossum config; create it manually on a work machine if needed.
+5. **Work/rossum config**: `~/zsh/zsh/work.zsh` is gitignored and intentionally not provisioned. Personal machines load no rossum config; create it manually on a work machine if needed. `.gitconfig` also expects `~/.gitconfig-rossum` for repos under `~/rossum/` (see the `includeIf` block); git silently ignores it when missing.
+6. **Raycast**: import `raycast/*.rayconfig` from Raycast's settings. Not scriptable.
+
+iTerm2 no longer needs manual setup - `install.sh` points it at
+`iterm2/preferences` via `defaults write`, as long as iTerm2 isn't running at the
+time.
+
+## Troubleshooting a fresh machine
+
+**`macos.sh` says "Could not write domain com.apple.Safari"**
+Expected. Safari's prefs are TCC-protected. The script detects this, skips the
+Safari block and lists it under "skipped" at the end. Grant your terminal Full
+Disk Access and rerun if you want those applied.
+
+**`brew bundle` reports failures**
+They no longer abort the install - `install.sh` records them and keeps going, so
+stow/zsh/iTerm2 still get set up. List them with:
+```bash
+brew bundle check --file=~/.dotfiles/Brewfile --verbose
+```
+Common causes: an extension was unpublished or renamed on the VSCode
+marketplace, or a formula moved to a cask (`1password-cli` is cask-only).
+
+**Stow reports conflicts**
+`install.sh` moves pre-existing real files to `~/.dotfiles-backup/<timestamp>/`
+before stowing. Check there if something you expected to keep disappeared.
 
 ## How It Works
 
@@ -161,6 +188,10 @@ To regenerate the Brewfile with your current packages:
 cd ~/.dotfiles
 brew bundle dump --force
 ```
+
+**Careful**: `dump --force` flattens the file and drops the section comments.
+The `badd` helper (`zsh/zsh/brew.zsh`) appends a single entry instead, which is
+usually what you want.
 
 ## Uninstalling
 
