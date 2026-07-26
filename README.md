@@ -125,10 +125,19 @@ Disk Access and rerun if you want those applied.
 They no longer abort the install - `install.sh` records them and keeps going, so
 stow/zsh/iTerm2 still get set up. List them with:
 ```bash
-brew bundle check --file=~/.dotfiles/Brewfile --verbose
+brew bundle check --file=~/.dotfiles/Brewfile --verbose --no-upgrade
 ```
+`--no-upgrade` matters: without it, `check` also reports every merely *outdated*
+package as unsatisfied, which buries the handful that are actually missing under
+dozens of lines. It also matches what `install.sh` runs (`brew bundle
+--no-upgrade`), so the two agree on what "satisfied" means.
+
 Common causes: an extension was unpublished or renamed on the VSCode
 marketplace, or a formula moved to a cask (`1password-cli` is cask-only).
+
+A `Skipping <tap> because it is not trusted` warning is unrelated to the
+Brewfile - it comes from a third-party tap still present locally. If nothing in
+the Brewfile needs it, `brew untap` it.
 
 **Stow reports conflicts**
 `install.sh` moves pre-existing real files to `~/.dotfiles-backup/<timestamp>/`
