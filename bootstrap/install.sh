@@ -16,6 +16,11 @@ NC='\033[0m'
 
 FAILURES=()
 
+# Anything this script moves out of the way goes here: stow conflicts, and font
+# files that block a cask reinstall. Defined up front because both the font step
+# and the stow step use it, and they are far apart.
+BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
+
 fail() {
     FAILURES+=("$1")
     echo -e "  ${RED}✗ $1${NC}" >&2
@@ -69,6 +74,62 @@ if ! brew bundle --file="$DOTFILES_DIR/Brewfile" --no-upgrade; then
     fail "brew bundle had failures (see above) - rerun 'brew bundle check --verbose' to list them"
 fi
 
+###############################################################################
+# Fonts                                                                       #
+###############################################################################
+
+# `brew bundle --no-upgrade` asks Homebrew whether a cask is installed, and
+# Homebrew answers from its receipt. A font cask whose adoption failed once (it
+# refuses to overwrite a hand-installed file of the same name: "existing Font is
+# different") leaves a receipt behind with no files on disk. bundle then reports
+# it satisfied forever and the font never appears - which is exactly how a
+# machine ends up with an iTerm2 profile falling back to Menlo.
+#
+# So don't trust the receipt: ask the font system whether the family is actually
+# registered, and force a reinstall when it isn't.
+step "Verifying fonts..."
+
+# Family substring -> cask that provides it. The substring has to appear in
+# system_profiler's font list for the family to count as present.
+FONT_FAMILIES=(
+    "FiraCode:font-fira-code"
+    "CascadiaCodeNF:font-cascadia-code-nf"
+    "HackNerdFont:font-hack-nerd-font"
+)
+
+# Captured once: system_profiler is slow, and piping it into `grep -q` would
+# SIGPIPE it on the first match and trip `pipefail`.
+fonts_db="$(system_profiler SPFontsDataType 2>/dev/null)"
+
+for entry in "${FONT_FAMILIES[@]}"; do
+    family="${entry%%:*}"
+    cask="${entry##*:}"
+
+    if [[ $fonts_db == *"$family"* ]]; then
+        echo -e "  ${GREEN}✓${NC} $family registered"
+        continue
+    fi
+
+    echo -e "  ${YELLOW}$family not registered - repairing $cask${NC}"
+
+    # Move loose files of the same family aside first, or the reinstall hits the
+    # same adoption conflict that created this mess.
+    mkdir -p "$BACKUP_DIR/fonts"
+    shopt -s nullglob nocaseglob
+    for stray in "$HOME/Library/Fonts/${family}"*; do
+        [ -L "$stray" ] && continue
+        mv "$stray" "$BACKUP_DIR/fonts/" 2>/dev/null \
+            && echo -e "    moved $(basename "$stray") to $BACKUP_DIR/fonts/"
+    done
+    shopt -u nullglob nocaseglob
+
+    if brew reinstall --cask "$cask"; then
+        echo -e "  ${GREEN}✓${NC} reinstalled $cask"
+    else
+        fail "could not reinstall $cask - $family will be missing"
+    fi
+done
+
 # Homebrew tags every cask it installs with com.apple.quarantine (it is a
 # download from the internet, as far as Gatekeeper is concerned). A quarantined
 # bundle has a different TCC identity than the same app unquarantined, so macOS
@@ -78,26 +139,36 @@ fi
 # HOMEBREW_CASK_OPTS=--no-quarantine (set in zsh/.zshenv) prevents this going
 # forward; the loop below repairs bundles installed before that was in place.
 #
-# The scope comes from the flag's own value, which records the agent that set
-# it - "01c1;690c5fe9;Homebrew\x20Cask;<uuid>". Only Homebrew's own installs are
-# cleared; anything downloaded by hand keeps its quarantine, which is the whole
-# point of the flag.
+# Scope is "Homebrew has a cask holding an app of this name", checked against the
+# Caskroom. An earlier version scoped by the flag's own agent field (it records
+# e.g. "Homebrew\x20Cask") - that silently skipped the app it was written for,
+# because a bundle that arrived via Migration Assistant, or was installed by an
+# older Homebrew, carries a different agent while still being cask-managed now.
+# Apps Homebrew knows nothing about are still left alone, which is the point.
 step "Clearing quarantine on Homebrew-installed apps..."
+
+CASKROOM="$(brew --caskroom 2>/dev/null)"
+
+cask_owns_app() {
+    local name
+    name="$(basename "$1")"
+    [ -n "$CASKROOM" ] || return 1
+    compgen -G "$CASKROOM/*/*/$name" >/dev/null 2>&1
+}
 
 quarantine_cleared=0
 shopt -s nullglob
 for app in /Applications/*.app "$HOME/Applications"/*.app; do
-    flag="$(xattr -p com.apple.quarantine "$app" 2>/dev/null)" || continue
-    case "$flag" in
-        *Homebrew*) ;;
-        *) continue ;;
-    esac
+    xattr "$app" 2>/dev/null | grep -q com.apple.quarantine || continue
+    cask_owns_app "$app" || continue
 
     if xattr -dr com.apple.quarantine "$app" 2>/dev/null; then
         echo -e "  ${GREEN}✓${NC} unquarantined $(basename "$app")"
         quarantine_cleared=$((quarantine_cleared + 1))
     else
-        fail "could not clear quarantine on $app"
+        # SIP or ownership. Worth a loud message: this is the cause of an app
+        # re-asking for permissions on every single launch.
+        fail "could not clear quarantine on $app (try: sudo xattr -dr com.apple.quarantine '$app')"
     fi
 done
 shopt -u nullglob
@@ -125,10 +196,6 @@ if ! command -v stow &>/dev/null; then
 fi
 echo -e "  ${GREEN}✓${NC} stow ($(stow --version | head -1))"
 
-# Stow refuses to overwrite a real (non-symlink) file. A fresh machine ships or
-# generates plenty of those - ~/.gitconfig, VSCode's settings.json, ~/.tmux.conf
-# - and each one aborts the whole package. Move them aside first.
-BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
 DOTFILES_PHYS="$(cd "$DOTFILES_DIR" && pwd -P)"
 
 backup_conflicts() {
