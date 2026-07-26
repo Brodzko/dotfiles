@@ -100,6 +100,12 @@ DOTFILES_PHYS="$(cd "$DOTFILES_DIR" && pwd -P)"
 backup_conflicts() {
     local package="$1"
     local rel target target_dir
+
+    # The only README we skip is the package's own root one (stow ignores it
+    # via .stow-local-ignore's ^/README.*). Nested ones - e.g. kickstart's
+    # nvim/.config/nvim/README.md - are real config files that stow does link,
+    # so they need backing up like anything else. Excluding them by -name left
+    # the existing file in place and aborted the whole nvim package.
     while IFS= read -r -d '' file; do
         rel="${file#"$DOTFILES_DIR/$package/"}"
         target="$HOME/$rel"
@@ -121,7 +127,8 @@ backup_conflicts() {
         mv "$target" "$BACKUP_DIR/$rel"
         echo -e "    ${YELLOW}backed up${NC} ~/$rel"
     done < <(find "$DOTFILES_DIR/$package" -type f \
-        ! -name '.DS_Store' ! -name '.stow-local-ignore' ! -name 'README.md' -print0)
+        ! -name '.DS_Store' ! -name '.stow-local-ignore' \
+        ! -path "$DOTFILES_DIR/$package/README.md" -print0)
 }
 
 # NOTE: iterm2/ and raycast/ are intentionally absent - they are not stow
