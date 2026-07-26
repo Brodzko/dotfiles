@@ -69,6 +69,40 @@ if ! brew bundle --file="$DOTFILES_DIR/Brewfile" --no-upgrade; then
     fail "brew bundle had failures (see above) - rerun 'brew bundle check --verbose' to list them"
 fi
 
+# Homebrew tags every cask it installs with com.apple.quarantine (it is a
+# download from the internet, as far as Gatekeeper is concerned). A quarantined
+# bundle has a different TCC identity than the same app unquarantined, so macOS
+# treats each launch as a new app and re-asks for Accessibility / Screen
+# Recording / Full Disk Access every single time. iTerm2 is the loud one.
+#
+# HOMEBREW_CASK_OPTS=--no-quarantine (set in zsh/.zshenv) prevents this going
+# forward; the loop below repairs bundles installed before that was in place.
+#
+# The scope comes from the flag's own value, which records the agent that set
+# it - "01c1;690c5fe9;Homebrew\x20Cask;<uuid>". Only Homebrew's own installs are
+# cleared; anything downloaded by hand keeps its quarantine, which is the whole
+# point of the flag.
+step "Clearing quarantine on Homebrew-installed apps..."
+
+quarantine_cleared=0
+shopt -s nullglob
+for app in /Applications/*.app "$HOME/Applications"/*.app; do
+    flag="$(xattr -p com.apple.quarantine "$app" 2>/dev/null)" || continue
+    case "$flag" in
+        *Homebrew*) ;;
+        *) continue ;;
+    esac
+
+    if xattr -dr com.apple.quarantine "$app" 2>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} unquarantined $(basename "$app")"
+        quarantine_cleared=$((quarantine_cleared + 1))
+    else
+        fail "could not clear quarantine on $app"
+    fi
+done
+shopt -u nullglob
+
+[ "$quarantine_cleared" -eq 0 ] && echo -e "  ${GREEN}✓${NC} nothing quarantined"
 ###############################################################################
 # Stow packages                                                               #
 ###############################################################################
@@ -222,24 +256,41 @@ fi
 step "Configuring iTerm2..."
 
 ITERM_PREFS="$DOTFILES_DIR/iterm2/preferences"
-if [ -d "$ITERM_PREFS" ]; then
-    # Check first: pointing iTerm2 at the folder while it runs is pointless (it
-    # rewrites its prefs from memory on quit), but the usual way to run this
-    # script is *from* iTerm2, so a plain "skipped" message got ignored and the
-    # machine kept using iTerm2's stock profile - stock font included.
-    if [ "$(defaults read com.googlecode.iterm2 PrefsCustomFolder 2>/dev/null)" = "$ITERM_PREFS" ] \
-        && [ "$(defaults read com.googlecode.iterm2 LoadPrefsFromCustomFolder 2>/dev/null)" = "1" ]; then
-        echo -e "  ${GREEN}✓${NC} iTerm2 already loads prefs from $ITERM_PREFS"
-    elif pgrep -xq iTerm2; then
-        fail "iTerm2 prefs not set - it was running. Quit iTerm2 and rerun from Terminal.app"
-        echo -e "  ${YELLOW}(or Settings → General → Preferences → load from custom folder)${NC}"
+ITERM_PLIST="$ITERM_PREFS/com.googlecode.iterm2.plist"
+
+if [ -f "$ITERM_PLIST" ]; then
+    # Pointing iTerm2 at the folder while it runs is pointless - it rewrites its
+    # prefs from memory on quit and wins. The usual way to run this script is
+    # *from* iTerm2, so this has to fail loudly with the exact repair command;
+    # a soft "skipped" got ignored and the machine kept iTerm2's stock profile,
+    # stock font included.
+    if pgrep -xq iTerm2; then
+        fail "iTerm2 prefs not applied - iTerm2 is running and would overwrite them on quit"
+        echo -e "  ${YELLOW}Quit iTerm2, then run this from Terminal.app:${NC}"
+        echo "    defaults import com.googlecode.iterm2 '$ITERM_PLIST'"
+        echo "    defaults write com.googlecode.iterm2 PrefsCustomFolder -string '$ITERM_PREFS'"
+        echo "    defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true"
     else
+        # Two separate things, and only doing the second is why a fresh machine
+        # ended up with no com.googlecode.iterm2 domain at all:
+        #
+        #   import - populates the domain now, so the very first launch already
+        #            has the right profile (FiraCode 14).
+        #   the two keys - tell iTerm2 to keep reading the repo from then on.
+        if defaults import com.googlecode.iterm2 "$ITERM_PLIST" 2>/dev/null; then
+            echo -e "  ${GREEN}✓${NC} imported $(basename "$ITERM_PLIST")"
+        else
+            fail "defaults import com.googlecode.iterm2 failed"
+        fi
+
         defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$ITERM_PREFS"
         defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
         # Keep the repo as the source of truth: don't let iTerm2 write back on quit.
         defaults write com.googlecode.iterm2 NoSyncNeverRemindPrefsChangesLostForFile_selection -int 2
         echo -e "  ${GREEN}✓${NC} iTerm2 pointed at $ITERM_PREFS"
     fi
+else
+    fail "iTerm2 prefs missing at $ITERM_PLIST"
 fi
 
 ###############################################################################
