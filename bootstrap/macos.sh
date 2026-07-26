@@ -164,21 +164,48 @@ if ! sudo -n true 2>/dev/null; then
 fi
 
 if sudo -n true 2>/dev/null; then
-    if sudo defaults write "$HITOOLBOX_SYSTEM" AppleEnabledInputSources -array \
-        '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>' \
-        && sudo defaults write "$HITOOLBOX_SYSTEM" AppleSelectedInputSources -array \
-            '<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>' \
-        && sudo defaults write "$HITOOLBOX_SYSTEM" AppleCurrentKeyboardLayoutInputSourceID -string "com.apple.keylayout.US"; then
+    US_LAYOUT='<dict><key>InputSourceKind</key><string>Keyboard Layout</string><key>KeyboardLayout ID</key><integer>0</integer><key>KeyboardLayout Name</key><string>U.S.</string></dict>'
+
+    # Errors are deliberately NOT redirected to /dev/null here. Silencing them is
+    # why "I ran it with sudo and the login screen is still wrong" was impossible
+    # to diagnose: the write can fail, or appear to succeed and be discarded.
+    sudo defaults write "$HITOOLBOX_SYSTEM" AppleEnabledInputSources -array "$US_LAYOUT"
+    sudo defaults write "$HITOOLBOX_SYSTEM" AppleSelectedInputSources -array "$US_LAYOUT"
+    sudo defaults write "$HITOOLBOX_SYSTEM" AppleCurrentKeyboardLayoutInputSourceID -string "com.apple.keylayout.US"
+    sudo defaults write "$HITOOLBOX_SYSTEM" AppleDefaultAsciiInputSource -dict \
+        InputSourceKind -string "Keyboard Layout" \
+        "KeyboardLayout ID" -int 0 \
+        "KeyboardLayout Name" -string "U.S."
+
+    # cfprefsd caches this file and can rewrite it from memory, undoing the
+    # writes above. Flush it so what is on disk is what was just written.
+    sudo killall cfprefsd 2>/dev/null || true
+
+    # Read the file back rather than trusting exit codes.
+    system_layouts="$(sudo plutil -p "${HITOOLBOX_SYSTEM}.plist" 2>/dev/null |
+        awk '/"AppleEnabledInputSources"/ { f = 1 }
+             f && /KeyboardLayout Name/ { sub(/.*=> "/, ""); sub(/"$/, ""); print }' |
+        sort -u | paste -sd, -)"
+
+    if [ "$system_layouts" = "U.S." ]; then
         echo -e "  ${GREEN}✓${NC} login window keyboard layout (U.S. only)"
     else
-        SKIPPED+=("login window keyboard layout (system HIToolbox plist)")
+        echo -e "  ${RED}✗${NC} login window layout is now: ${system_layouts:-<empty>}"
+        SKIPPED+=("login window keyboard layout - file still reads: ${system_layouts:-<empty>}")
     fi
 
-    # Pushes the layout above onto the Preboot volume. No-op without FileVault.
-    if sudo diskutil apfs updatePreboot / &>/dev/null; then
-        echo -e "  ${GREEN}✓${NC} pre-boot (FileVault) keyboard layout synced"
+    # With FileVault on, the password screen at boot runs before macOS and reads
+    # its own copy of the above from the Preboot volume. Without this resync the
+    # login window is fixed and the boot screen is still wrong.
+    if fdesetup status 2>/dev/null | grep -q 'FileVault is On'; then
+        echo -e "  ${YELLOW}FileVault is on - syncing Preboot volume...${NC}"
+        if sudo diskutil apfs updatePreboot /; then
+            echo -e "  ${GREEN}✓${NC} pre-boot keyboard layout synced"
+        else
+            SKIPPED+=("pre-boot keyboard layout (diskutil apfs updatePreboot failed)")
+        fi
     else
-        SKIPPED+=("pre-boot keyboard layout (diskutil apfs updatePreboot)")
+        echo -e "  ${GREEN}✓${NC} FileVault off - no Preboot volume to sync"
     fi
 else
     SKIPPED+=("login window + pre-boot keyboard layout (no sudo)")
