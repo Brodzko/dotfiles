@@ -8,3 +8,5 @@
 .zsh_history
 /zsh/zsh/elis_be.zsh
 /zsh/zsh/work.zsh
+# Machine reports from bootstrap/report.sh - shared deliberately with `git add -f`
+bootstrap/report-*.txt
