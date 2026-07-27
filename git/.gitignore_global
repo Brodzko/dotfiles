@@ -123,3 +123,7 @@ logs/
 .env
 .env.local
 .env.*.local
+
+# Agent tooling
+**/.quill/
+**/.claude/settings.local.json
