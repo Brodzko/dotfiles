@@ -299,45 +299,20 @@ set_default_scaling() {
 }
 
 if command -v displayplacer &>/dev/null; then
-    dp_id=""
-    dp_builtin=0
-    dp_w=0
-    dp_h=0
-
-    # `displayplacer list` prints one block per screen: a persistent id, a Type
-    # line, then every supported mode. The native resolution is simply the
-    # largest mode in the block.
-    while IFS= read -r line; do
-        case "$line" in
-            "Persistent screen id: "*)
-                [ "$dp_builtin" -eq 1 ] && set_default_scaling "$dp_id" "$dp_w" "$dp_h"
-                dp_id="${line#Persistent screen id: }"
-                dp_builtin=0
-                dp_w=0
-                dp_h=0
-                ;;
-            Type:*built?in*)
-                dp_builtin=1
-                ;;
-            *"mode "*res:*)
-                res="${line#*res:}"
-                res="${res%% *}"
-                mode_w="${res%%x*}"
-                mode_h="${res##*x}"
-                # Compare total pixels, not width: the panel also advertises
-                # letterboxed modes at full width (3024x1890 next to the real
-                # 3024x1964), and the widest-wins version of this picked those.
-                case "$mode_w$mode_h" in
-                    *[!0-9]*) continue ;;
-                esac
-                if [ $((mode_w * mode_h)) -gt $((dp_w * dp_h)) ]; then
-                    dp_w="$mode_w"
-                    dp_h="$mode_h"
-                fi
-                ;;
-        esac
-    done < <(displayplacer list 2>/dev/null)
-    [ "$dp_builtin" -eq 1 ] && set_default_scaling "$dp_id" "$dp_w" "$dp_h"
+    # Persistent id of the built-in panel from displayplacer; native pixel size
+    # from system_profiler. displayplacer's mode list cannot provide the native
+    # size: some panels advertise supersampled modes larger than the physical
+    # pixels (3840x2160 on a 3024x1964 panel), so "largest mode = native"
+    # overshoots and lands on "More Space" instead of Default.
+    dp_id="$(displayplacer list 2>/dev/null | awk '
+        /^Persistent screen id: / { id = $NF }
+        /^Type:.*[Bb]uilt.in/ { print id; exit }')"
+    native="$(system_profiler SPDisplaysDataType 2>/dev/null | awk '
+        /Display Type:.*[Bb]uilt-?[Ii]n/ || /Built-In: Yes/ { f = 1 }
+        f && /Resolution:/ { print $2 " " $4; exit }')"
+    nat_w="${native%% *}"
+    nat_h="${native##* }"
+    set_default_scaling "$dp_id" "${nat_w:-0}" "${nat_h:-0}"
 else
     SKIPPED+=("display scaling (displayplacer missing - run 'brew bundle' first)")
 fi

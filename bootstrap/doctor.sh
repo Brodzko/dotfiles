@@ -58,13 +58,13 @@ section "Display scaling"
 if command -v displayplacer &>/dev/null; then
     dp_out="$(displayplacer list 2>/dev/null)"
     current="$(printf '%s\n' "$dp_out" | awk '/built.in screen/{f=1} f && /^Resolution:/{print $2; exit}')"
-    native="$(printf '%s\n' "$dp_out" | awk '
-        /built.in screen/ { f = 1 }
-        f && match($0, /res:[0-9]+x[0-9]+/) {
-            split(substr($0, RSTART + 4, RLENGTH - 4), r, "x")
-            if (r[1] * r[2] > best) { best = r[1] * r[2]; w = r[1]; h = r[2] }
-        }
-        END { if (w) print w "x" h }')"
+    # Native panel size from system_profiler, not from displayplacer's mode
+    # list: some panels advertise supersampled modes larger than the physical
+    # pixels (3840x2160 on a 3024x1964 panel), so "largest mode = native"
+    # overshoots and flags a correctly configured machine.
+    native="$(system_profiler SPDisplaysDataType 2>/dev/null | awk '
+        /Display Type:.*[Bb]uilt-?[Ii]n/ || /Built-In: Yes/ { f = 1 }
+        f && /Resolution:/ { print $2 "x" $4; exit }')"
 
     if [ -n "$native" ]; then
         info "built-in native" "$native"
