@@ -20,6 +20,7 @@ brew "ripgrep"
 brew "starship"
 brew "stow"
 brew "tmux"
+brew "tmuxinator"
 brew "tree"
 brew "wget"
 
@@ -29,17 +30,21 @@ brew "wget"
 brew "gh"
 brew "git"
 brew "git-delta"
+brew "gitleaks"
 brew "glab"
 brew "jira-cli"
 brew "lazygit"
+brew "tig"
 
 ###############################################################################
 # Development tools                                                           #
 ###############################################################################
 brew "fnm"
+brew "hyperfine"
 brew "neovim"
 brew "poetry"
 brew "python@3.12"
+brew "shellcheck"
 brew "uv"
 brew "yamllint"
 
@@ -47,6 +52,7 @@ brew "yamllint"
 # Docker & Kubernetes                                                         #
 ###############################################################################
 brew "colima"
+brew "dive"
 brew "docker"
 brew "docker-buildx"
 brew "docker-compose"
@@ -62,11 +68,16 @@ brew "postgresql@14", restart_service: :changed
 ###############################################################################
 # Libraries & misc                                                            #
 ###############################################################################
+brew "ddgr"
 # displayplacer: bootstrap/macos.sh needs it to set the display scaling, which
 # has no `defaults` key.
 brew "displayplacer"
+brew "ffmpeg"
+brew "gource"
+brew "graphviz"
 brew "libmagic"
 brew "mas"
+brew "pandoc"
 brew "poppler"
 brew "pybind11"
 brew "qpdf"
@@ -79,8 +90,10 @@ brew "zsh-syntax-highlighting"
 ###############################################################################
 cask "1password"
 cask "1password-cli"
+cask "applepi-baker"
 cask "brave-browser"
 cask "firefox"
+cask "ghostty"
 cask "google-chrome"
 cask "iterm2"
 cask "keyboardcleantool"
@@ -88,6 +101,7 @@ cask "mysides"
 cask "ngrok"
 cask "obsidian"
 cask "openlens"
+cask "podman-desktop"
 cask "postman"
 cask "raycast"
 cask "slack"
