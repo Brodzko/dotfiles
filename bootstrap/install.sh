@@ -238,7 +238,6 @@ PACKAGES=(
     "bat"
     "git"
     "htop"
-    "karabiner"
     "launchd"
     "nvim"
     "ssh"

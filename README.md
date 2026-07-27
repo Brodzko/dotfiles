@@ -57,7 +57,6 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 - **vscode** - `settings.json`, `keybindings.json` and snippets (extensions live in the `Brewfile`)
 
 ### System
-- **karabiner** - Keyboard customization
 - **ssh** - SSH configuration template (copy from `.ssh/config.example`)
 
 ### Package Management
@@ -76,7 +75,6 @@ Personal macOS dotfiles managed with [GNU Stow](https://www.gnu.org/software/sto
 ├── git/               # Git config and themes
 ├── htop/              # htop configuration
 ├── iterm2/            # iTerm2 preferences (manual setup)
-├── karabiner/         # Karabiner keyboard customization
 ├── launchd/           # LaunchAgent plist files
 ├── nvim/              # Neovim configuration
 ├── raycast/           # Raycast export
